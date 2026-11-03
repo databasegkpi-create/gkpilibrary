@@ -5,80 +5,155 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GKPI Digital Library</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#1d4ed8">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- PDF.js di-load secara global -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans select-none" oncontextmenu="return false;">
 
-  <!-- Auth View -->
+  <!-- Tampilan Login / Register -->
   <div id="auth-view" class="min-h-screen flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Logo_GKPI.png" alt="Logo GKPI" class="h-20 mx-auto mb-4 object-contain">
-      <h1 class="text-2xl font-bold text-blue-700 mb-6">GKPI Digital Library</h1>
+      <!-- Menggunakan placeholder logo -->
+      <div class="w-24 h-24 bg-blue-100 rounded-full mx-auto flex items-center justify-center text-blue-600 mb-4 border-4 border-blue-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-blue-700 mb-6">GKPI Digital</h1>
       <form id="auth-form" class="space-y-4">
-        <input type="email" id="email" placeholder="Email Anda" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-        <input type="password" id="password" placeholder="Kata Sandi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <input type="email" id="email" placeholder="Email Anda" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+        <input type="password" id="password" placeholder="Kata Sandi (Min 6 Karakter)" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required minlength="6">
         <div class="flex gap-2">
           <button type="submit" id="btn-login" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700">Masuk</button>
           <button type="button" id="btn-register" class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-300">Daftar</button>
         </div>
-        <p id="auth-msg" class="text-sm text-red-500 mt-2 hidden"></p>
       </form>
     </div>
   </div>
 
-  <!-- Dashboard View -->
-  <div id="dashboard-view" class="min-h-screen hidden">
-    <header class="bg-blue-700 text-white p-4 shadow-md flex justify-between items-center">
-      <h1 class="text-lg font-bold">GKPI Digital</h1>
-      <button id="btn-logout" class="text-sm bg-red-500 px-3 py-1 rounded hover:bg-red-600">Keluar</button>
+  <!-- Tampilan Aplikasi Utama -->
+  <div id="main-layout" class="hidden h-screen flex-col">
+    <!-- Header -->
+    <header class="bg-blue-700 text-white p-4 shadow-md text-center font-bold text-lg" id="app-header">
+      Beranda Perpustakaan
     </header>
-    <main class="p-4 max-w-2xl mx-auto mt-6">
-      <div class="bg-white rounded-xl shadow-md p-5 flex flex-col md:flex-row gap-4 items-center">
-        <div class="w-32 h-40 bg-gray-200 rounded flex items-center justify-center text-gray-400 font-bold border-2 border-dashed">
-          Suara GKPI<br>Edisi Nov
-        </div>
-        <div class="flex-1 text-center md:text-left">
-          <h2 class="text-xl font-bold mb-1">Suara GKPI - November 2026</h2>
-          <p class="text-sm text-gray-500 mb-4">Terbit: 10 November 2026</p>
-          <p class="text-lg font-bold text-green-600 mb-4">Rp 10.000</p>
-          <button id="btn-action" class="bg-blue-600 w-full md:w-auto text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-blue-700">
-            Beli Edisi Ini
-          </button>
-        </div>
+
+    <!-- Konten Dinamis -->
+    <main class="flex-1 overflow-y-auto p-4 pb-24 relative" id="main-content">
+      
+      <!-- Loading State -->
+      <div id="loading-spinner" class="hidden absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-10">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
+
+      <!-- Tab: Semua Buku -->
+      <div id="view-library" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Tab: Buku Saya -->
+      <div id="view-mybooks" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Tab: Profil -->
+      <div id="view-profile" class="hidden flex flex-col items-center pt-8">
+        <div class="w-24 h-24 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-3xl font-bold mb-4 shadow">
+            👤
+        </div>
+        <h2 id="profile-email" class="text-xl font-bold text-gray-800 mb-6">email@domain.com</h2>
+        <button id="btn-logout" class="bg-red-500 text-white px-8 py-2 rounded-lg font-bold shadow hover:bg-red-600 transition-colors">Keluar Aplikasi</button>
+      </div>
+
+      <!-- Tab: Admin (Hanya terlihat oleh akun Admin) -->
+      <div id="view-admin" class="hidden max-w-md mx-auto p-6 bg-white rounded-xl shadow-md border-t-4 border-gray-800 mt-4">
+        <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+            <span>⚙️</span> Panel Admin
+        </h2>
+        <p class="text-sm text-gray-600 mb-6 border-b pb-4">Unggah data buku baru. Buku akan otomatis tampil di katalog aplikasi.</p>
+        
+        <form id="form-add-book" class="space-y-4">
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Judul Buku / Edisi</label>
+              <input type="text" id="admin-title" placeholder="Cth: Suara GKPI - Nov 2026" class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-gray-400 outline-none" required>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Harga (Rp)</label>
+              <input type="number" id="admin-price" placeholder="Cth: 10000" class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-gray-400 outline-none" required>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">ID File Google Drive</label>
+              <input type="text" id="admin-drive" placeholder="Cth: 1XyZ...abcD" class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-gray-400 outline-none font-mono text-sm" required>
+              <p class="text-xs text-gray-500 mt-1">Pastikan ID mengarah ke file PDF, bukan folder.</p>
+          </div>
+          <button type="submit" class="bg-gray-800 text-white w-full py-3 rounded-lg font-bold hover:bg-gray-900 shadow mt-2">Terbitkan ke Katalog</button>
+        </form>
+      </div>
+
     </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around p-2 pb-4 text-sm text-gray-500 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
+      <button id="nav-library" class="flex flex-col items-center p-2 text-blue-600 font-bold transition-colors">
+        <span class="text-xl mb-1">📚</span> Beranda
+      </button>
+      <button id="nav-mybooks" class="flex flex-col items-center p-2 hover:text-blue-600 transition-colors">
+        <span class="text-xl mb-1">📖</span> Buku Saya
+      </button>
+      <button id="nav-profile" class="flex flex-col items-center p-2 hover:text-blue-600 transition-colors">
+        <span class="text-xl mb-1">👤</span> Profil
+      </button>
+      <!-- Tombol Admin Tersembunyi -->
+      <button id="nav-admin" class="hidden flex-col items-center p-2 hover:text-gray-800 transition-colors">
+        <span class="text-xl mb-1">⚙️</span> Admin
+      </button>
+    </nav>
   </div>
 
-  <!-- Payment Modal -->
-  <div id="payment-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm text-center">
-      <h3 class="font-bold text-lg mb-2">Pembayaran QRIS</h3>
-      <p class="text-sm text-gray-600 mb-4">Scan QRIS di bawah menggunakan BRImo / E-Wallet Anda.</p>
-      <div class="w-48 h-48 bg-gray-200 mx-auto mb-4 flex items-center justify-center text-sm font-mono border">
-        [ Gambar QRIS ]
+  <!-- Modal Pembayaran QRIS -->
+  <div id="payment-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white rounded-xl p-6 w-full max-w-sm text-center shadow-2xl relative">
+      <!-- Tombol Tutup Silang -->
+      <button id="btn-close-payment-x" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+      </button>
+
+      <h3 class="font-bold text-xl mb-1 text-gray-800">Pembayaran QRIS</h3>
+      <p class="text-sm text-gray-600 font-medium mb-1" id="payment-itemName">Judul Buku</p>
+      <p class="text-lg font-bold text-blue-600 mb-4" id="payment-itemPrice">Rp 0</p>
+      
+      <div class="w-56 h-56 bg-gray-50 mx-auto mb-6 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+        </svg>
+        <span class="text-sm font-semibold text-gray-500">Scan QRIS Ini</span>
       </div>
-      <button id="btn-confirm-payment" class="bg-green-600 w-full text-white font-bold py-2 rounded mb-2">Simulasi: Bayar Berhasil</button>
-      <button id="btn-cancel-payment" class="text-gray-500 text-sm hover:underline">Batal</button>
+
+      <button id="btn-confirm-payment" class="bg-green-600 w-full text-white font-bold py-3 rounded-lg mb-3 shadow hover:bg-green-700 transition-colors">
+          Simulasi: Bayar Berhasil
+      </button>
+      <button id="btn-cancel-payment" class="w-full text-gray-500 font-medium py-2 hover:bg-gray-100 rounded-lg transition-colors">Batalkan Pembelian</button>
     </div>
   </div>
 
   <!-- PDF Reader View -->
   <div id="reader-view" class="fixed inset-0 bg-gray-900 hidden flex-col z-50">
     <header class="bg-gray-800 text-white p-3 flex justify-between items-center shadow-lg relative z-20">
-      <button id="btn-close-reader" class="bg-red-500 px-3 py-1 rounded text-sm">Tutup</button>
-      <span id="page-info" class="text-sm font-mono">Halaman - / -</span>
+      <button id="btn-close-reader" class="bg-red-500 px-4 py-1.5 rounded-lg text-sm font-bold shadow hover:bg-red-600 transition-colors">Tutup</button>
+      <span id="page-info" class="text-sm font-mono tracking-wider">Memuat...</span>
       <div class="flex gap-2">
-        <button id="btn-prev" class="bg-gray-700 px-3 py-1 rounded text-sm disabled:opacity-50">&lt;</button>
-        <button id="btn-next" class="bg-gray-700 px-3 py-1 rounded text-sm disabled:opacity-50">&gt;</button>
+        <button id="btn-prev" class="bg-gray-700 px-4 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-600">&lt; Hal</button>
+        <button id="btn-next" class="bg-gray-700 px-4 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-600">Hal &gt;</button>
       </div>
     </header>
-    <div class="flex-1 overflow-auto relative flex items-start justify-center p-4" id="canvas-container">
-      <canvas id="pdf-canvas" class="shadow-2xl rounded max-w-full"></canvas>
+
+    <!-- Area Kanvas PDF -->
+    <div class="flex-1 overflow-auto relative flex items-start justify-center p-2 sm:p-4 bg-gray-900" id="canvas-container">
+      <canvas id="pdf-canvas" class="shadow-2xl rounded bg-white max-w-full"></canvas>
+      
       <!-- Watermark Dinamis -->
-      <div id="watermark" class="absolute inset-0 pointer-events-none opacity-20 flex flex-wrap items-center justify-center text-white text-2xl font-bold -rotate-45 overflow-hidden z-10 break-all leading-loose">
+      <div id="watermark" class="absolute inset-0 pointer-events-none opacity-20 flex flex-wrap items-center justify-center text-white text-2xl md:text-4xl font-bold -rotate-45 overflow-hidden z-10 break-all leading-[3rem]">
       </div>
     </div>
   </div>
