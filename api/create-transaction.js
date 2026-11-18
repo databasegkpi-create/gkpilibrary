@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     });
 
     const snapData = await snapRes.json();
-    if (!snapRes.ok) return res.status(500).json({ error: 'Gagal membuat tagihan pembayaran' });
+ if (!snapRes.ok) return res.status(500).json({ error: 'Midtrans Menolak: ' + JSON.stringify(snapData) });
 
     return res.status(200).json({ snapToken: snapData.token, orderId });
   } catch (err) {
