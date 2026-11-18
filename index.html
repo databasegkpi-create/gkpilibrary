@@ -190,27 +190,54 @@
       `).join('');
     }
 
-    // 4. Simulasi / Proses Pembelian Buku (Agar bisa langsung dites hari ini)
+  // 4. Proses Pembayaran Resmi dengan Popup Midtrans (QRIS / Virtual Account / E-Wallet)
     async function buyBook(bookId, title, price) {
       if (!currentUser) return openAuthModal();
-      const confirm = await Swal.fire({
-        title: 'Beli ' + title + '?',
-        text: `Harga: Rp ${Number(price).toLocaleString('id-ID')}. Klik Beli untuk menambahkan ke akun Anda.`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, Beli Sekarang',
-        cancelButtonText: 'Batal'
-      });
-      if (!confirm.isConfirmed) return;
 
-      const { error } = await sb.from('user_library').insert({ user_id: currentUser.id, book_id: bookId });
-      if (error) {
-        Swal.fire('Gagal', error.message, 'error');
-      } else {
-        await loadUserLibrary();
-        await loadStoreBooks();
-        Swal.fire('Berhasil!', 'Buku sudah masuk ke Koleksi Saya dan siap dibaca.', 'success');
-        showTab('library');
+      Swal.fire({
+        title: 'Menyiapkan Tagihan...',
+        text: 'Menghubungkan ke gerbang pembayaran resmi',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      try {
+        const res = await fetch('/api/create-transaction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSession.access_token}`
+          },
+          body: JSON.stringify({ bookId })
+        });
+
+        const data = await res.json();
+        Swal.close();
+
+        if (!res.ok || !data.snapToken) {
+          return Swal.fire('Gagal', data.error || 'Gagal membuat transaksi', 'error');
+        }
+
+        // Munculkan Popup Pembayaran Midtrans Snap di Layar
+        window.snap.pay(data.snapToken, {
+          onSuccess: async function(result) {
+            Swal.fire('Pembayaran Berhasil!', 'Buku otomatis ditambahkan ke Koleksi Saya.', 'success');
+            setTimeout(async () => {
+              await loadUserLibrary();
+              await loadStoreBooks();
+              showTab('library');
+            }, 2000);
+          },
+          onPending: function(result) {
+            Swal.fire('Menunggu Pembayaran', 'Silakan selesaikan pembayaran Anda. Buku akan otomatis terbuka setelah lunas.', 'info');
+          },
+          onError: function(result) {
+            Swal.fire('Pembayaran Gagal', 'Silakan coba kembali.', 'error');
+          }
+        });
+      } catch (err) {
+        Swal.close();
+        Swal.fire('Error', 'Gagal menghubungi server pembayaran.', 'error');
       }
     }
 
