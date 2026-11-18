@@ -9,7 +9,6 @@ export default async function handler(req, res) {
   const token = authHeader.replace('Bearer ', '');
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const gasUrl = process.env.GAS_WEB_APP_URL;
 
   try {
     // 1. Cek siapa user yang sedang login ke Supabase
@@ -38,24 +37,27 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Anda belum membeli buku ini.' });
     }
 
-    const gdriveFileId = libData[0].books.gdrive_file_id;
+    const gdriveFileId = libData[0].books.gdrive_file_id.trim();
 
-    // 3. Ambil isi PDF dari Jembatan Google Apps Script Anda
-    const gasResponse = await fetch(`${gasUrl}?fileId=${gdriveFileId}&key=RAHASIA_TOKO_BUKU_2026`);
-    const gasJson = await gasResponse.json();
+    // 3. Ambil file PDF langsung dari Google Drive lewat Server Vercel (Lebih Cepat & Stabil)
+    const driveUrl = `https://drive.google.com/uc?export=download&id=${gdriveFileId}`;
+    const driveResponse = await fetch(driveUrl);
 
-    if (gasJson.status !== 'success') {
-      return res.status(500).json({ error: 'Gagal memuat file buku dari Google Drive.' });
+    if (!driveResponse.ok) {
+      return res.status(500).json({ error: 'Pastikan akses file di Google Drive sudah diubah ke: Siapa saja yang memiliki link (Anyone with the link).' });
     }
+
+    const arrayBuffer = await driveResponse.arrayBuffer();
+    const base64Pdf = Buffer.from(arrayBuffer).toString('base64');
 
     return res.status(200).json({
       status: 'success',
-      pdfBase64: gasJson.data,
+      pdfBase64: base64Pdf,
       lastPage: libData[0].last_page || 1,
       userEmail: user.email
     });
 
   } catch (err) {
-    return res.status(500).json({ error: 'Terjadi kesalahan pada server.' });
+    return res.status(500).json({ error: 'Terjadi kesalahan saat memproses buku: ' + err.message });
   }
 }
