@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   try {
-    // 1. Cek siapa user yang sedang login ke Supabase
+    // 1. Verifikasi akun user yang sedang login
     const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     if (!userRes.ok) return res.status(401).json({ error: 'Sesi login tidak valid.' });
     const user = await userRes.json();
 
-    // 2. Cek apakah user ini sudah membeli buku tersebut di tabel user_library
+    // 2. Cek apakah user sudah membeli buku ini di tabel user_library
     const libRes = await fetch(
       `${supabaseUrl}/rest/v1/user_library?user_id=eq.${user.id}&book_id=eq.${bookId}&select=id,last_page,books(gdrive_file_id,title)`,
       {
@@ -39,25 +39,16 @@ export default async function handler(req, res) {
 
     const gdriveFileId = libData[0].books.gdrive_file_id.trim();
 
-    // 3. Ambil file PDF langsung dari Google Drive lewat Server Vercel (Lebih Cepat & Stabil)
-    const driveUrl = `https://drive.google.com/uc?export=download&id=${gdriveFileId}`;
-    const driveResponse = await fetch(driveUrl);
-
-    if (!driveResponse.ok) {
-      return res.status(500).json({ error: 'Pastikan akses file di Google Drive sudah diubah ke: Siapa saja yang memiliki link (Anyone with the link).' });
-    }
-
-    const arrayBuffer = await driveResponse.arrayBuffer();
-    const base64Pdf = Buffer.from(arrayBuffer).toString('base64');
-
+    // 3. Kembalikan stream token terverifikasi untuk dirender instan
     return res.status(200).json({
       status: 'success',
-      pdfBase64: base64Pdf,
+      streamUrl: `https://drive.google.com/file/d/${gdriveFileId}/preview`,
+      title: libData[0].books.title,
       lastPage: libData[0].last_page || 1,
       userEmail: user.email
     });
 
   } catch (err) {
-    return res.status(500).json({ error: 'Terjadi kesalahan saat memproses buku: ' + err.message });
+    return res.status(500).json({ error: 'Terjadi kesalahan server: ' + err.message });
   }
 }
