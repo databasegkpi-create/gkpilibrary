@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen antialiased">
 
@@ -102,25 +104,38 @@
       <!-- TAB NAVIGASI -->
       <div class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
         <button id="tab-btn-catalog" onclick="switchAdminTab('catalog')"
-          class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 text-white transition whitespace-nowrap">
-          <i class="fa-solid fa-book mr-1.5"></i>Katalog & Stok
+          class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 text-white transition whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-book"></i><span>Katalog & Stok</span>
         </button>
         <button id="tab-btn-shipping" onclick="switchAdminTab('shipping')"
           class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-200/70 transition whitespace-nowrap flex items-center gap-2">
-          <span><i class="fa-solid fa-truck mr-1.5"></i>Pesanan Fisik</span>
+          <i class="fa-solid fa-truck"></i><span>Pesanan Fisik</span>
           <span id="badge-pending-ship" class="hidden px-2 py-0.5 text-[11px] font-bold bg-red-600 text-white rounded-full">0</span>
         </button>
         <button id="tab-btn-transactions" onclick="switchAdminTab('transactions')"
-          class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-200/70 transition whitespace-nowrap">
-          <i class="fa-solid fa-receipt mr-1.5"></i>Semua Transaksi
+          class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-200/70 transition whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-receipt"></i><span>Semua Transaksi</span>
         </button>
       </div>
 
       <!-- TAB 1: KATALOG & STOK -->
       <section id="tab-catalog" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 class="font-bold text-slate-900">Daftar Produk (E-Book & Buku Fisik)</h2>
-          <span id="book-count" class="text-xs font-semibold px-3 py-1 bg-slate-100 rounded-full text-slate-600">0 Produk</span>
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h2 class="font-bold text-slate-900">Daftar Produk (E-Book & Buku Fisik)</h2>
+            <span id="book-count" class="text-xs font-semibold px-3 py-1 bg-slate-100 rounded-full text-slate-600">0 Produk</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="printStockReport()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition">
+              <i class="fa-solid fa-print mr-1"></i>Cetak Stok
+            </button>
+            <button onclick="exportStockExcel()" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+              <i class="fa-solid fa-file-excel mr-1"></i>Excel Stok
+            </button>
+            <button onclick="downloadStockPDF()" class="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+              <i class="fa-solid fa-file-pdf mr-1"></i>PDF Stok
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -143,7 +158,7 @@
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 class="font-bold text-slate-900">Antrean Pengiriman Buku Fisik</h2>
-            <p class="text-xs text-slate-500">Hanya menampilkan pesanan buku fisik yang sudah lunas (PAID).</p>
+            <p class="text-xs text-slate-500">Menampilkan pesanan buku fisik yang sudah lunas (PAID) dan pesanan tunai di kantor.</p>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -164,8 +179,47 @@
 
       <!-- TAB 3: SEMUA TRANSAKSI -->
       <section id="tab-transactions" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100">
-          <h2 class="font-bold text-slate-900">Riwayat Semua Transaksi</h2>
+        <div class="px-5 py-4 border-b border-slate-100 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-slate-900">Riwayat & Laporan Penjualan</h2>
+              <p id="tx-filter-summary" class="text-xs text-slate-500 mt-0.5">Menampilkan semua transaksi</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="printSalesReport()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition">
+                <i class="fa-solid fa-print mr-1"></i>Cetak Laporan
+              </button>
+              <button onclick="exportSalesExcel()" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+                <i class="fa-solid fa-file-excel mr-1"></i>Excel Penjualan
+              </button>
+              <button onclick="downloadSalesPDF()" class="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                <i class="fa-solid fa-file-pdf mr-1"></i>PDF Laporan
+              </button>
+            </div>
+          </div>
+
+          <!-- Baris Filter -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100">
+            <input type="date" id="filter-start" onchange="renderTransactionsTable()"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="date" id="filter-end" onchange="renderTransactionsTable()"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="filter-status" onchange="renderTransactionsTable()"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="ALL">Semua Status</option>
+              <option value="PAID">Lunas (PAID)</option>
+              <option value="PENDING">Pending</option>
+            </select>
+            <select id="filter-type" onchange="renderTransactionsTable()"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="ALL">Semua Tipe</option>
+              <option value="digital">E-Book</option>
+              <option value="physical">Buku Fisik</option>
+            </select>
+            <button onclick="resetTxFilter()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
+              Reset Filter
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -176,6 +230,7 @@
                 <th class="py-3.5 px-4">Tipe</th>
                 <th class="py-3.5 px-4">Total</th>
                 <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4 text-right">Kwitansi</th>
               </tr>
             </thead>
             <tbody id="tx-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -322,7 +377,6 @@
   </div>
 
   <script>
-    // GANTI DENGAN URL & ANON KEY SUPABASE ANDA
     const SUPABASE_URL = 'https://hhbghudcjnqzohksebox.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_b8BjVmh_WoFus_3QDpksNg_2ipxO4Gf';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -374,7 +428,6 @@
         allTransactions = data.transactions || [];
         const stats = data.stats || {};
 
-        // Render Statistik
         document.getElementById('stat-revenue').textContent = formatRupiah(stats.totalRevenue);
         document.getElementById('stat-digital').textContent = stats.totalDigitalSold || 0;
         document.getElementById('stat-physical').textContent = stats.totalPhysicalSold || 0;
@@ -457,7 +510,7 @@
       }).join('');
     }
 
-   function renderShippingTable() {
+    function renderShippingTable() {
       const tbody = document.getElementById('shipping-table-body');
       const physicalOrders = allTransactions.filter(
         (t) => t.product_type === 'physical' && (t.status === 'PAID' || (t.status === 'PENDING' && (t.order_id || '').startsWith('CASH-')))
@@ -505,7 +558,10 @@
                 ? `<button onclick="confirmCashPayment('${tx.order_id}', ${tx.amount})" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
                      <i class="fa-solid fa-money-bill-wave mr-1"></i>Terima Tunai
                    </button>`
-                : `<button onclick="openShippingModal('${tx.order_id}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">
+                : `<button onclick="printShippingLabel('${tx.order_id}')" class="px-3 py-1.5 text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg mr-1 transition">
+                     <i class="fa-solid fa-tag mr-1"></i>Label
+                   </button>
+                   <button onclick="openShippingModal('${tx.order_id}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">
                      <i class="fa-solid fa-truck-ramp-box mr-1"></i>Update
                    </button>`
               }
@@ -539,14 +595,48 @@
       }
     }
 
+    function getFilteredTransactions() {
+      const start = document.getElementById('filter-start')?.value || '';
+      const end = document.getElementById('filter-end')?.value || '';
+      const status = document.getElementById('filter-status')?.value || 'ALL';
+      const type = document.getElementById('filter-type')?.value || 'ALL';
+
+      return allTransactions.filter((tx) => {
+        const txDate = (tx.created_at || '').slice(0, 10);
+        if (start && txDate < start) return false;
+        if (end && txDate > end) return false;
+        if (status !== 'ALL' && tx.status !== status) return false;
+        if (type !== 'ALL' && (tx.product_type || 'digital') !== type) return false;
+        return true;
+      });
+    }
+
+    function resetTxFilter() {
+      document.getElementById('filter-start').value = '';
+      document.getElementById('filter-end').value = '';
+      document.getElementById('filter-status').value = 'ALL';
+      document.getElementById('filter-type').value = 'ALL';
+      renderTransactionsTable();
+    }
+
     function renderTransactionsTable() {
       const tbody = document.getElementById('tx-table-body');
-      if (allTransactions.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-400">Belum ada transaksi.</td></tr>`;
+      const filtered = getFilteredTransactions();
+      const totalOmzet = filtered
+        .filter((t) => t.status === 'PAID')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      const summaryEl = document.getElementById('tx-filter-summary');
+      if (summaryEl) {
+        summaryEl.textContent = `${filtered.length} transaksi ditemukan • Total Omzet (PAID): ${formatRupiah(totalOmzet)}`;
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">Tidak ada transaksi sesuai filter.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = allTransactions.map((tx) => {
+      tbody.innerHTML = filtered.map((tx) => {
         const isPaid = tx.status === 'PAID';
         const isPhysical = tx.product_type === 'physical';
         return `
@@ -563,8 +653,320 @@
                 ${tx.status}
               </span>
             </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              ${isPaid
+                ? `<button onclick="downloadReceiptPDF('${tx.order_id}')" class="px-2.5 py-1 text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition">
+                     <i class="fa-solid fa-file-invoice mr-1"></i>Kwitansi PDF
+                   </button>`
+                : `<span class="text-xs text-slate-400">-</span>`
+              }
+            </td>
           </tr>`;
       }).join('');
+    }
+
+    // --- CETAK & EXCEL LAPORAN STOK ---
+    function exportStockExcel() {
+      const rows = allBooks.map((b, i) => ({
+        No: i + 1,
+        Judul: b.title,
+        Penulis: b.author || '-',
+        Tipe: b.product_type === 'physical' ? 'Buku Fisik' : 'E-Book',
+        Harga: Number(b.price || 0),
+        Stok: b.product_type === 'physical' ? Number(b.stock || 0) : 'Unlimited',
+        Nilai_Stok: b.product_type === 'physical' ? Number(b.price || 0) * Number(b.stock || 0) : 0
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Laporan Stok');
+      XLSX.writeFile(wb, `Laporan_Stok_GKPI_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function printStockReport() {
+      const now = new Date().toLocaleString('id-ID');
+      let totalPcs = 0;
+      let totalVal = 0;
+      const rowsHtml = allBooks.map((b, i) => {
+        const isPhys = b.product_type === 'physical';
+        const st = isPhys ? Number(b.stock || 0) : 0;
+        const val = isPhys ? st * Number(b.price || 0) : 0;
+        if (isPhys) { totalPcs += st; totalVal += val; }
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${b.title}</td>
+          <td>${isPhys ? 'Buku Fisik' : 'E-Book'}</td>
+          <td style="text-align:right">${formatRupiah(b.price)}</td>
+          <td style="text-align:center">${isPhys ? st + ' pcs' : 'Digital'}</td>
+          <td style="text-align:right">${isPhys ? formatRupiah(val) : '-'}</td>
+        </tr>`;
+      }).join('');
+
+      openPrintWindow('Laporan Stok & Katalog - GKPI Book Store', `
+        <h2>GKPI BOOK STORE — LAPORAN STOK & KATALOG</h2>
+        <p class="sub">Dicetak pada: ${now}</p>
+        <table>
+          <thead><tr><th>No</th><th>Judul Buku</th><th>Tipe</th><th>Harga</th><th>Stok</th><th>Nilai Aset Stok</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+          <tfoot><tr><th colspan="4" style="text-align:right">TOTAL STOK FISIK</th><th style="text-align:center">${totalPcs} pcs</th><th style="text-align:right">${formatRupiah(totalVal)}</th></tr></tfoot>
+        </table>
+      `);
+    }
+
+    // --- CETAK & EXCEL LAPORAN PENJUALAN ---
+    function exportSalesExcel() {
+      const filtered = getFilteredTransactions();
+      const rows = filtered.map((tx, i) => ({
+        No: i + 1,
+        Tanggal: formatDate(tx.created_at),
+        Order_ID: tx.order_id,
+        Produk: tx.books?.title || '-',
+        Tipe: tx.product_type === 'physical' ? 'Buku Fisik' : 'E-Book',
+        Qty: Number(tx.quantity || 1),
+        Ongkir: Number(tx.shipping_cost || 0),
+        Total_Bayar: Number(tx.amount || 0),
+        Status: tx.status,
+        Penerima: tx.shipping_name || '-',
+        Metode_Kirim: tx.shipping_method || '-'
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Laporan Penjualan');
+      XLSX.writeFile(wb, `Laporan_Penjualan_GKPI_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function printSalesReport() {
+      const filtered = getFilteredTransactions();
+      const start = document.getElementById('filter-start').value || 'Awal';
+      const end = document.getElementById('filter-end').value || 'Sekarang';
+      const totalPaid = filtered.filter((t) => t.status === 'PAID').reduce((s, t) => s + Number(t.amount || 0), 0);
+
+      const rowsHtml = filtered.map((tx, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${formatDate(tx.created_at)}</td>
+        <td>${tx.order_id}</td>
+        <td>${tx.books?.title || '-'} (${tx.quantity || 1}x)</td>
+        <td>${tx.product_type === 'physical' ? 'Fisik' : 'E-Book'}</td>
+        <td>${tx.status}</td>
+        <td style="text-align:right">${formatRupiah(tx.amount)}</td>
+      </tr>`).join('');
+
+      openPrintWindow('Laporan Penjualan - GKPI Book Store', `
+        <h2>GKPI BOOK STORE — LAPORAN PENJUALAN</h2>
+        <p class="sub">Periode: ${start} s/d ${end} • Dicetak: ${new Date().toLocaleString('id-ID')}</p>
+        <table>
+          <thead><tr><th>No</th><th>Tanggal</th><th>Order ID</th><th>Produk</th><th>Tipe</th><th>Status</th><th>Total</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+          <tfoot><tr><th colspan="6" style="text-align:right">TOTAL PEMASUKAN (PAID)</th><th style="text-align:right">${formatRupiah(totalPaid)}</th></tr></tfoot>
+        </table>
+      `);
+    }
+
+    // --- CETAK LABEL PENGIRIMAN PAKET ---
+    function printShippingLabel(orderId) {
+      const tx = allTransactions.find((t) => t.order_id === orderId);
+      if (!tx) return;
+      openPrintWindow(`Label ${tx.order_id}`, `
+        <div style="border:2px solid #000; padding:18px; max-width:420px; font-family:sans-serif;">
+          <div style="border-bottom:1px dashed #000; padding-bottom:8px; margin-bottom:10px;">
+            <strong style="font-size:16px;">GKPI BOOK STORE (Biro Infokom)</strong><br>
+            <span style="font-size:12px;">Order ID: <b>${tx.order_id}</b></span>
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="font-size:11px; text-transform:uppercase; color:#555;">Penerima:</span><br>
+            <strong style="font-size:15px;">${tx.shipping_name || '-'}</strong><br>
+            <span style="font-size:13px;">HP/WA: ${tx.shipping_phone || '-'}</span><br>
+            <p style="font-size:13px; margin:6px 0 0;">${tx.shipping_address || '-'}</p>
+          </div>
+          <div style="border-top:1px dashed #000; padding-top:8px; font-size:12px;">
+            <strong>Kurir:</strong> ${tx.shipping_method || '-'}<br>
+            <strong>Isi Paket:</strong> ${tx.books?.title || 'Buku Fisik'} (${tx.quantity || 1} pcs)
+          </div>
+        </div>
+      `);
+    }
+
+    function openPrintWindow(title, bodyHtml) {
+      const win = window.open('', '_blank', 'width=900,height=650');
+      win.document.write(`
+        <!DOCTYPE html><html><head><title>${title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+          h2 { margin: 0 0 4px; font-size: 18px; }
+          .sub { margin: 0 0 16px; font-size: 12px; color: #555; }
+          table { width: 100%; border-collapse: collapse; font-size: 12px; }
+          th, td { border: 1px solid #ccc; padding: 7px 8px; text-align: left; }
+          th { background: #f3f4f6; }
+          @media print { body { padding: 0; } }
+        </style></head><body>${bodyHtml}</body></html>
+      `);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 300);
+    }
+
+    // --- HELPER DOWNLOAD PDF ---
+    function downloadAsPDF(htmlContent, filename, orientation = 'portrait') {
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      const opt = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation }
+      };
+      Swal.fire({ title: 'Membuat PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      html2pdf().set(opt).from(container).save().then(() => Swal.close());
+    }
+
+    function downloadStockPDF() {
+      const now = new Date().toLocaleString('id-ID');
+      let totalPcs = 0;
+      let totalVal = 0;
+      const rows = allBooks.map((b, i) => {
+        const isPhys = b.product_type === 'physical';
+        const st = isPhys ? Number(b.stock || 0) : 0;
+        const val = isPhys ? st * Number(b.price || 0) : 0;
+        if (isPhys) { totalPcs += st; totalVal += val; }
+        return `<tr>
+          <td style="border:1px solid #cbd5e1;padding:6px;">${i + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;">${b.title}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;">${isPhys ? 'Buku Fisik' : 'E-Book'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;">${formatRupiah(b.price)}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${isPhys ? st + ' pcs' : 'Digital'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;">${isPhys ? formatRupiah(val) : '-'}</td>
+        </tr>`;
+      }).join('');
+
+      const html = `
+        <div style="font-family:Arial,sans-serif;color:#0f172a;font-size:11px;">
+          <h2 style="margin:0 0 4px;font-size:16px;">GKPI BOOK STORE — LAPORAN STOK & KATALOG</h2>
+          <p style="margin:0 0 12px;color:#64748b;">Dicetak: ${now}</p>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">No</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Judul Buku</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Tipe</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;">Harga</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:center;">Stok</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;">Nilai Aset</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+              <tr style="background:#f8fafc;font-weight:bold;">
+                <td colspan="4" style="border:1px solid #cbd5e1;padding:6px;text-align:right;">TOTAL STOK FISIK</td>
+                <td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${totalPcs} pcs</td>
+                <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;">${formatRupiah(totalVal)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>`;
+      downloadAsPDF(html, `Laporan_Stok_GKPI_${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
+
+    function downloadSalesPDF() {
+      const filtered = getFilteredTransactions();
+      const start = document.getElementById('filter-start').value || 'Awal';
+      const end = document.getElementById('filter-end').value || 'Sekarang';
+      const totalPaid = filtered.filter((t) => t.status === 'PAID').reduce((s, t) => s + Number(t.amount || 0), 0);
+
+      const rows = filtered.map((tx, i) => `<tr>
+        <td style="border:1px solid #cbd5e1;padding:6px;">${i + 1}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px;">${formatDate(tx.created_at)}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px;font-family:monospace;">${tx.order_id}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px;">${tx.books?.title || '-'} (${tx.quantity || 1}x)</td>
+        <td style="border:1px solid #cbd5e1;padding:6px;">${tx.status}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;">${formatRupiah(tx.amount)}</td>
+      </tr>`).join('');
+
+      const html = `
+        <div style="font-family:Arial,sans-serif;color:#0f172a;font-size:11px;">
+          <h2 style="margin:0 0 4px;font-size:16px;">GKPI BOOK STORE — LAPORAN PENJUALAN</h2>
+          <p style="margin:0 0 12px;color:#64748b;">Periode: ${start} s/d ${end} • Dicetak: ${new Date().toLocaleString('id-ID')}</p>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">No</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Tanggal</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Order ID</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Produk</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:left;">Status</th>
+                <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+              <tr style="background:#f8fafc;font-weight:bold;">
+                <td colspan="5" style="border:1px solid #cbd5e1;padding:6px;text-align:right;">TOTAL PEMASUKAN (PAID)</td>
+                <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;">${formatRupiah(totalPaid)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>`;
+      downloadAsPDF(html, `Laporan_Penjualan_GKPI_${new Date().toISOString().slice(0, 10)}.pdf`, 'landscape');
+    }
+
+    function downloadReceiptPDF(orderId) {
+      const tx = allTransactions.find((t) => t.order_id === orderId);
+      if (!tx) return;
+      const isPhys = tx.product_type === 'physical';
+      const shippingCost = Number(tx.shipping_cost || 0);
+      const subtotal = Number(tx.amount || 0) - shippingCost;
+
+      const html = `
+        <div style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:0 auto;border:1px solid #cbd5e1;border-radius:8px;padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:16px;">
+            <div>
+              <h2 style="margin:0;font-size:18px;color:#1d4ed8;">GKPI BOOK STORE</h2>
+              <p style="margin:2px 0 0;font-size:11px;color:#64748b;">Biro Infokom GKPI • Bukti Pembayaran Sah</p>
+            </div>
+            <div style="text-align:right;">
+              <span style="display:inline-block;padding:4px 10px;background:#dcfce7;color:#15803d;font-weight:bold;font-size:11px;border-radius:4px;">LUNAS (PAID)</span>
+              <p style="margin:4px 0 0;font-size:11px;font-family:monospace;">${tx.order_id}</p>
+            </div>
+          </div>
+
+          <table style="width:100%;font-size:12px;margin-bottom:16px;">
+            <tr><td style="color:#64748b;padding:3px 0;width:130px;">Tanggal</td><td>: ${formatDate(tx.created_at)}</td></tr>
+            <tr><td style="color:#64748b;padding:3px 0;">Penerima / Pembeli</td><td>: <b>${tx.shipping_name || 'Pelanggan Digital'}</b></td></tr>
+            ${isPhys ? `<tr><td style="color:#64748b;padding:3px 0;">WhatsApp</td><td>: ${tx.shipping_phone || '-'}</td></tr>` : ''}
+            ${isPhys ? `<tr><td style="color:#64748b;padding:3px 0;">Pengiriman</td><td>: ${tx.shipping_method || '-'}</td></tr>` : ''}
+            ${tx.tracking_number ? `<tr><td style="color:#64748b;padding:3px 0;">No. Resi</td><td>: <b>${tx.tracking_number}</b></td></tr>` : ''}
+          </table>
+
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="border:1px solid #cbd5e1;padding:8px;text-align:left;">Item</th>
+                <th style="border:1px solid #cbd5e1;padding:8px;text-align:center;">Qty</th>
+                <th style="border:1px solid #cbd5e1;padding:8px;text-align:right;">Jumlah</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border:1px solid #cbd5e1;padding:8px;">${tx.books?.title || 'Produk'} (${isPhys ? 'Buku Fisik' : 'E-Book'})</td>
+                <td style="border:1px solid #cbd5e1;padding:8px;text-align:center;">${tx.quantity || 1}</td>
+                <td style="border:1px solid #cbd5e1;padding:8px;text-align:right;">${formatRupiah(subtotal)}</td>
+              </tr>
+              ${isPhys ? `
+              <tr>
+                <td colspan="2" style="border:1px solid #cbd5e1;padding:8px;text-align:right;color:#64748b;">Ongkos Kirim</td>
+                <td style="border:1px solid #cbd5e1;padding:8px;text-align:right;">${formatRupiah(shippingCost)}</td>
+              </tr>` : ''}
+              <tr style="background:#f8fafc;font-weight:bold;">
+                <td colspan="2" style="border:1px solid #cbd5e1;padding:8px;text-align:right;">TOTAL DIBAYAR</td>
+                <td style="border:1px solid #cbd5e1;padding:8px;text-align:right;font-size:14px;">${formatRupiah(tx.amount)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p style="margin:0;font-size:10px;color:#64748b;text-align:center;">
+            Terima kasih telah berbelanja di GKPI Book Store. Dokumen ini diterbitkan secara otomatis oleh sistem.
+          </p>
+        </div>`;
+      downloadAsPDF(html, `Kwitansi_${tx.order_id}.pdf`);
     }
 
     // FORM PRODUK
