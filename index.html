@@ -399,36 +399,30 @@
     </div>
   </div>
 
-  <!-- MODAL PEMBACA E-BOOK TERPROTEKSI (PDF.JS) -->
-  <div id="reader-modal" oncontextmenu="return false;" class="hidden fixed inset-0 z-50 bg-slate-900 flex flex-col no-select">
-    <div class="h-14 bg-slate-950 border-b border-slate-800 px-4 flex items-center justify-between text-white shrink-0">
+  <!-- MODAL READER E-BOOK (SUPPORT UKURAN BESAR + WATERMARK) -->
+  <div id="reader-modal" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col">
+    <div class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between text-white shrink-0">
       <div class="flex items-center gap-3 min-w-0">
         <button onclick="closeReader()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-lg transition">
           <i class="fa-solid fa-arrow-left mr-1"></i> Tutup
         </button>
-        <span id="reader-title" class="text-sm font-semibold truncate">Membaca E-Book</span>
+        <h3 id="reader-title" class="text-sm font-bold truncate">Memuat E-Book...</h3>
       </div>
-      <div class="flex items-center gap-2 text-xs">
-        <button onclick="changeZoom(-0.2)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700"><i class="fa-solid fa-minus"></i></button>
-        <button onclick="changeZoom(0.2)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700"><i class="fa-solid fa-plus"></i></button>
-        <div class="flex items-center gap-1.5 ml-2 bg-slate-800 px-2.5 py-1.5 rounded-lg">
-          <button onclick="changePage(-1)" class="hover:text-blue-400"><i class="fa-solid fa-chevron-left"></i></button>
-          <span id="page-indicator" class="px-1 font-mono">1 / 1</span>
-          <button onclick="changePage(1)" class="hover:text-blue-400"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-      </div>
+      <span class="text-xs text-slate-400 hidden sm:inline">
+        <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>Mode Baca Terproteksi
+      </span>
     </div>
 
-    <div class="flex-1 overflow-auto flex justify-center items-start p-4 sm:p-6 relative">
-      <div id="reader-loading" class="text-slate-300 text-sm mt-20 flex flex-col items-center gap-3">
-        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-400"></i>
-        <span>Memuat halaman e-book terproteksi...</span>
-      </div>
-      <div id="canvas-wrapper" class="hidden relative shadow-2xl">
-        <canvas id="pdf-canvas" class="rounded-md bg-white max-w-full"></canvas>
-        <div id="reader-watermark" class="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-15">
-          <span class="text-slate-900 font-bold text-xl sm:text-3xl -rotate-45 whitespace-nowrap"></span>
-        </div>
+    <div class="relative flex-1 w-full bg-slate-900 overflow-hidden">
+      <!-- Iframe Google Drive Preview -->
+      <iframe id="reader-iframe" src="" class="w-full h-full border-0" allow="autoplay"></iframe>
+
+      <!-- Perisai Pemblokir Tombol Pop-out / Download di Pojok Kanan Atas Google Drive -->
+      <div class="absolute top-0 right-0 w-24 h-16 bg-transparent z-20" title="Akses Terproteksi"></div>
+
+      <!-- Watermark Email Pembeli -->
+      <div id="reader-watermark" class="pointer-events-none select-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden opacity-15">
+        <span id="reader-watermark-text" class="text-white text-xl sm:text-3xl font-extrabold -rotate-30 whitespace-nowrap tracking-widest"></span>
       </div>
     </div>
   </div>
