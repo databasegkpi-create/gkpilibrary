@@ -865,7 +865,7 @@
       activeCheckoutBook = null;
     }
 
-    function handleShippingModeChange() {
+  function handleShippingModeChange() {
       const mode = document.getElementById('co-shipping-mode').value;
       const courierSec = document.getElementById('co-courier-section');
       const addrWrap = document.getElementById('co-address-wrapper');
@@ -875,10 +875,16 @@
         courierSec.classList.add('hidden');
         addrWrap.classList.add('hidden');
         addrInput.required = false;
+      } else if (mode === 'BUS_TRAVEL') {
+        courierSec.classList.add('hidden');
+        addrWrap.classList.remove('hidden');
+        addrInput.required = true;
+        addrInput.placeholder = 'Tulis kota tujuan, alamat, & nama PO Bus/Travel (misal: Medan - PO Intra / Paradep)';
       } else {
         courierSec.classList.remove('hidden');
         addrWrap.classList.remove('hidden');
         addrInput.required = true;
+        addrInput.placeholder = 'Contoh: Jl. Merdeka No. 12, RT 02/03';
       }
       recalcCheckoutTotal();
     }
@@ -967,7 +973,7 @@
       }
     }
 
-    function recalcCheckoutTotal() {
+   function recalcCheckoutTotal() {
       if (!activeCheckoutBook) return;
       const qtyInput = document.getElementById('co-qty');
       let qty = parseInt(qtyInput.value, 10) || 1;
@@ -989,7 +995,8 @@
       const total = subtotal + shippingCost;
 
       document.getElementById('co-subtotal').textContent = formatRupiah(subtotal);
-      document.getElementById('co-shipping-cost').textContent = formatRupiah(shippingCost);
+      document.getElementById('co-shipping-cost').textContent =
+        mode === 'BUS_TRAVEL' ? 'Manual (Bus/Travel)' : formatRupiah(shippingCost);
       document.getElementById('co-total').textContent = formatRupiah(total);
     }
 
@@ -998,6 +1005,7 @@
       if (!currentSession || !activeCheckoutBook) return;
 
       const mode = document.getElementById('co-shipping-mode').value;
+      const paymentMethod = document.getElementById('co-payment-method').value;
       let shippingMethod = 'AMBIL_DI_KANTOR';
       let shippingCost = 0;
       let fullAddress = 'Ambil di Kantor';
@@ -1011,11 +1019,16 @@
         shippingMethod = `${chosen.courier_name} - ${chosen.courier_service_name} (${chosen.duration})`;
         shippingCost = Number(chosen.price || 0);
         fullAddress = `${document.getElementById('co-address').value.trim()} | ${selectedArea.name}`;
+      } else if (mode === 'BUS_TRAVEL') {
+        shippingMethod = 'Kirim via Bus / Travel (Ongkir Manual)';
+        shippingCost = 0;
+        fullAddress = document.getElementById('co-address').value.trim();
       }
 
       const payload = {
         bookId: activeCheckoutBook.id,
         quantity: parseInt(document.getElementById('co-qty').value, 10) || 1,
+        paymentMethod,
         shippingMethod,
         shippingCost,
         shippingName: document.getElementById('co-name').value.trim(),
@@ -1046,6 +1059,18 @@
         Swal.close();
 
         if (!res.ok) return Swal.fire('Gagal', data.error || 'Gagal membuat tagihan pembayaran.', 'error');
+
+        if (data.isManualCash) {
+          Swal.fire(
+            'Pesanan Tunai Dicatat!',
+            `Kode Pesanan: ${data.orderId}. Silakan datang ke kantor untuk melakukan pembayaran tunai sebesar ${formatRupiah(data.amount)}.`,
+            'success'
+          );
+          await loadUserPhysicalOrders();
+          switchTab('library');
+          switchLibrarySubtab('orders');
+          return;
+        }
 
         window.snap.pay(data.token, {
           onSuccess: async () => {
