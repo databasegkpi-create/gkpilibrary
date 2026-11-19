@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+ const serverKey = process.env.MIDTRANS_SIGNATURE_KEY || process.env.MIDTRANS_SERVER_KEY;
 
   // 1. CEK SEGEL KEAMANAN SHA-512 (Memastikan laporan ini 100% asli dari Midtrans, bukan hacker)
   const validSignature = crypto
