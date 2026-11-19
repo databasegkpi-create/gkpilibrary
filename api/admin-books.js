@@ -8,6 +8,24 @@ function extractDriveId(input = '') {
   return trimmed.replace(/^\/+|\/+$/g, '');
 }
 
+async function sendWA(target, message) {
+  const token = process.env.FONNTE_TOKEN;
+  if (!token || !target) return;
+
+  try {
+    await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ target, message })
+    });
+  } catch (err) {
+    console.error('Gagal kirim WA Fonnte:', err.message);
+  }
+}
+
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: 'Silakan login terlebih dahulu.' });
@@ -129,22 +147,45 @@ export default async function handler(req, res) {
         return res.status(200).json({ status: 'success' });
       }
 
-      // 1. Update Status Pengiriman & Nomor Resi
+// 1. Update Status Pengiriman & Nomor Resi + Kirim WA ke Pembeli
       if (action === 'update_shipping') {
         const { order_id, shipping_status, tracking_number } = req.body;
         if (!order_id) return res.status(400).json({ error: 'Order ID tidak ditemukan.' });
+
+        const cleanTracking = (tracking_number || '').trim();
+        const finalStatus = shipping_status || 'MENUNGGU_DIKEMAS';
 
         const updateRes = await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}`, {
           method: 'PATCH',
           headers: dbHeaders,
           body: JSON.stringify({
-            shipping_status: shipping_status || 'MENUNGGU_DIKEMAS',
-            tracking_number: (tracking_number || '').trim()
+            shipping_status: finalStatus,
+            tracking_number: cleanTracking
           })
         });
         const updated = await updateRes.json();
         if (!updateRes.ok) return res.status(500).json({ error: updated.message || 'Gagal memperbarui pengiriman.' });
-        return res.status(200).json({ status: 'success', data: updated[0] });
+
+        // Kirim notifikasi WA otomatis ke pembeli
+        const tx = updated?.[0];
+        if (tx?.shipping_phone) {
+          const statusLabel = finalStatus.replace(/_/g, ' ');
+          const resiMsg = [
+            `Halo *${tx.shipping_name || 'Pelanggan'}*,`,
+            `Update status pesanan Anda di *GKPI Book Store*:`,
+            ``,
+            `Order ID: *${order_id}*`,
+            `Status: *${statusLabel}*`,
+            cleanTracking ? `No. Resi / Info: *${cleanTracking}*` : '',
+            `Kurir: ${tx.shipping_method || '-'}`,
+            ``,
+            `Terima kasih telah berbelanja di GKPI Book Store.`
+          ].filter(Boolean).join('\n');
+
+          await sendWA(tx.shipping_phone, resiMsg);
+        }
+
+        return res.status(200).json({ status: 'success', data: tx });
       }
 
       // 2. Update Stok Cepat
