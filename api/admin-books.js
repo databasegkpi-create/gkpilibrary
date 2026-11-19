@@ -101,6 +101,34 @@ export default async function handler(req, res) {
     if (req.method === 'PATCH') {
       const { action } = req.body;
 
+      // 0. Konfirmasi Pembayaran Tunai di Kantor (Ubah ke PAID & Potong Stok)
+      if (action === 'confirm_cash') {
+        const { order_id } = req.body;
+        if (!order_id) return res.status(400).json({ error: 'Order ID tidak ditemukan.' });
+
+        const txRes = await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}&select=*`, { headers: dbHeaders });
+        const txList = await txRes.json();
+        const tx = txList[0];
+        if (!tx) return res.status(404).json({ error: 'Transaksi tidak ditemukan.' });
+        if (tx.status === 'PAID') return res.status(200).json({ status: 'already_paid' });
+
+        await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}`, {
+          method: 'PATCH',
+          headers: dbHeaders,
+          body: JSON.stringify({ status: 'PAID' })
+        });
+
+        if (tx.product_type === 'physical') {
+          await fetch(`${supabaseUrl}/rest/v1/rpc/decrement_book_stock`, {
+            method: 'POST',
+            headers: dbHeaders,
+            body: JSON.stringify({ p_book_id: tx.book_id, p_qty: Number(tx.quantity || 1) })
+          });
+        }
+
+        return res.status(200).json({ status: 'success' });
+      }
+
       // 1. Update Status Pengiriman & Nomor Resi
       if (action === 'update_shipping') {
         const { order_id, shipping_status, tracking_number } = req.body;
