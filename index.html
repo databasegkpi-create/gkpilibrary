@@ -263,13 +263,24 @@
           </div>
         </div>
 
-        <!-- Opsi Pengiriman -->
+     <!-- Opsi Pengiriman -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pengiriman *</label>
           <select id="co-shipping-mode" onchange="handleShippingModeChange()"
             class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
             <option value="KURIR">Kirim Kurir (JNE / SiCepat — Ongkir Otomatis)</option>
+            <option value="BUS_TRAVEL">Kirim via Bus / Travel (Ongkir Manual)</option>
             <option value="AMBIL_DI_KANTOR">Ambil di Kantor (Rp 0)</option>
+          </select>
+        </div>
+
+        <!-- Opsi Pembayaran -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pembayaran *</label>
+          <select id="co-payment-method"
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+            <option value="MIDTRANS">Bayar Online (QRIS / Virtual Account)</option>
+            <option value="CASH_KANTOR">Bayar Tunai di Kantor (Cash)</option>
           </select>
         </div>
 
