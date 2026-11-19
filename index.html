@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GKPI Book Store — Toko E-Book Resmi</title>
+  <title>GKPI Book Store — Toko E-Book & Buku Fisik Resmi</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -11,7 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-SwVTge5CRz15U5GM"></script>
   <style>
-    /* Mencegah seleksi teks di area pembaca buku */
     .no-select {
       user-select: none;
       -webkit-user-select: none;
@@ -23,7 +22,6 @@
   <!-- NAVBAR -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200/80">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-      <!-- Brand -->
       <button onclick="switchTab('store')" class="flex items-center gap-2.5 text-left shrink-0">
         <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
           <i class="fa-solid fa-book-open text-sm"></i>
@@ -38,7 +36,7 @@
       <div class="hidden md:flex flex-1 max-w-md relative">
         <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm absolute left-3.5 top-1/2 -translate-y-1/2"></i>
         <input type="text" id="search-desktop" oninput="handleSearch(this.value)"
-          placeholder="Cari judul e-book atau penulis..."
+          placeholder="Cari judul buku atau penulis..."
           class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition">
       </div>
 
@@ -50,16 +48,14 @@
         </button>
         <button id="nav-library" onclick="switchTab('library')"
           class="px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">
-          <i class="fa-solid fa-bookmark sm:mr-1.5"></i><span class="hidden sm:inline">Koleksi</span>
+          <i class="fa-solid fa-bookmark sm:mr-1.5"></i><span class="hidden sm:inline">Koleksi & Pesanan</span>
         </button>
 
-        <!-- Tombol Login (Jika Belum Masuk) -->
         <button id="btn-login-nav" onclick="openAuthModal()"
           class="ml-1 px-4 py-2 text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm transition">
           Masuk
         </button>
 
-        <!-- Info User & Logout (Jika Sudah Masuk) -->
         <div id="user-menu-nav" class="hidden items-center gap-2 ml-1 pl-2 border-l border-slate-200">
           <span id="user-email-badge" class="hidden lg:inline text-xs font-medium text-slate-500 max-w-[140px] truncate"></span>
           <button onclick="logout()" title="Keluar"
@@ -75,7 +71,7 @@
       <div class="relative">
         <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm absolute left-3.5 top-1/2 -translate-y-1/2"></i>
         <input type="text" id="search-mobile" oninput="handleSearch(this.value)"
-          placeholder="Cari judul e-book atau penulis..."
+          placeholder="Cari judul buku atau penulis..."
           class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition">
       </div>
     </div>
@@ -84,17 +80,17 @@
   <!-- KONTEN UTAMA -->
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
 
-    <!-- HERO SECTION (Hanya tampil di Tab Toko) -->
+    <!-- HERO SECTION -->
     <section id="hero-section" class="mb-10 rounded-2xl bg-slate-50 border border-slate-200/80 p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
       <div class="max-w-xl">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 mb-4">
-          <i class="fa-solid fa-bolt"></i> Akses Instan Setelah Pembayaran
+          <i class="fa-solid fa-bolt"></i> E-Book Instan & Buku Fisik Resmi
         </span>
         <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-3">
-          Baca E-Book Resmi GKPI Langsung dari Browser
+          Publikasi Resmi GKPI dalam Genggaman Anda
         </h1>
         <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
-          Beli sekali, tersimpan selamanya di akun Anda. Pembayaran otomatis via QRIS & Virtual Account, aman dan praktis tanpa perlu aplikasi tambahan.
+          Pilih E-Book untuk dibaca langsung di browser atau pesan Buku Fisik yang dikirim langsung dari kantor kami. Pembayaran otomatis via QRIS & Virtual Account.
         </p>
       </div>
       <div class="flex flex-wrap gap-3 text-xs font-medium text-slate-600 shrink-0">
@@ -106,29 +102,59 @@
           </div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-xs flex items-center gap-2.5">
-          <i class="fa-solid fa-tablet-screen-button text-blue-600 text-base"></i>
+          <i class="fa-solid fa-box-open text-amber-600 text-base"></i>
           <div>
-            <p class="font-bold text-slate-900">Baca di Mana Saja</p>
-            <p class="text-slate-500">HP, Tablet, & Laptop</p>
+            <p class="font-bold text-slate-900">Digital & Cetak</p>
+            <p class="text-slate-500">Baca Online / Kirim Kurir</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- HEADER BAGIAN & FILTER -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <h2 id="section-title" class="text-xl font-bold text-slate-900">Katalog E-Book Pilihan</h2>
-        <p id="section-subtitle" class="text-sm text-slate-500">Temukan publikasi dan bacaan terbaru.</p>
+    <!-- HEADER BAGIAN, FILTER TIPE, & SORT -->
+    <div id="store-controls" class="space-y-4 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 id="section-title" class="text-xl font-bold text-slate-900">Katalog Buku Pilihan</h2>
+          <p id="section-subtitle" class="text-sm text-slate-500">Temukan e-book dan buku cetak terbaru.</p>
+        </div>
+        <div id="sort-wrapper" class="flex items-center gap-2">
+          <label for="sort-select" class="text-xs font-medium text-slate-500">Urutkan:</label>
+          <select id="sort-select" onchange="renderBooks()"
+            class="text-sm bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+            <option value="newest">Terbaru</option>
+            <option value="price-asc">Harga Terendah</option>
+            <option value="price-desc">Harga Tertinggi</option>
+          </select>
+        </div>
       </div>
-      <div id="sort-wrapper" class="flex items-center gap-2">
-        <label for="sort-select" class="text-xs font-medium text-slate-500">Urutkan:</label>
-        <select id="sort-select" onchange="renderBooks()"
-          class="text-sm bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-          <option value="newest">Terbaru</option>
-          <option value="price-asc">Harga Terendah</option>
-          <option value="price-desc">Harga Tertinggi</option>
-        </select>
+
+      <!-- Filter Pills (Tab Toko) -->
+      <div id="type-filter-bar" class="flex items-center gap-2 overflow-x-auto pb-1">
+        <button onclick="setTypeFilter('all')" id="filter-all"
+          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition whitespace-nowrap">
+          Semua Produk
+        </button>
+        <button onclick="setTypeFilter('digital')" id="filter-digital"
+          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap">
+          <i class="fa-solid fa-tablet-screen-button mr-1"></i>E-Book
+        </button>
+        <button onclick="setTypeFilter('physical')" id="filter-physical"
+          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap">
+          <i class="fa-solid fa-book mr-1"></i>Buku Fisik
+        </button>
+      </div>
+
+      <!-- Sub-Tab (Tab Koleksi & Pesanan) -->
+      <div id="library-subtabs" class="hidden flex items-center gap-2 border-b border-slate-200 pb-3">
+        <button onclick="switchLibrarySubtab('ebooks')" id="subtab-ebooks"
+          class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition">
+          <i class="fa-solid fa-book-open-reader mr-1.5"></i>Koleksi E-Book
+        </button>
+        <button onclick="switchLibrarySubtab('orders')" id="subtab-orders"
+          class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-truck-fast mr-1.5"></i>Pesanan Buku Fisik
+        </button>
       </div>
     </div>
 
@@ -147,9 +173,10 @@
     </div>
 
     <!-- GRID BUKU -->
-    <div id="books-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
-      <!-- Kartu buku dirender di sini -->
-    </div>
+    <div id="books-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6"></div>
+
+    <!-- DAFTAR PESANAN BUKU FISIK (USER) -->
+    <div id="physical-orders-list" class="hidden space-y-4"></div>
 
     <!-- EMPTY STATE -->
     <div id="empty-state" class="hidden text-center py-16 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
@@ -182,7 +209,7 @@
   <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900">Detail E-Book</h3>
+        <h3 class="font-bold text-slate-900">Detail Produk</h3>
         <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -191,22 +218,103 @@
         <img id="detail-cover" src="" alt="Cover" class="w-40 sm:w-44 aspect-[3/4] object-cover rounded-xl border border-slate-200 shadow-sm mx-auto sm:mx-0 shrink-0 bg-slate-100">
         <div class="flex-1 flex flex-col justify-between">
           <div>
-            <span id="detail-badge" class="hidden inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-2">
-              <i class="fa-solid fa-check mr-1"></i> Sudah Dimiliki
-            </span>
+            <div id="detail-badges" class="flex flex-wrap gap-2 mb-2"></div>
             <h4 id="detail-title" class="text-xl font-bold text-slate-900 leading-snug mb-1"></h4>
             <p id="detail-author" class="text-sm text-slate-500 mb-4"></p>
             <p id="detail-desc" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-6"></p>
           </div>
           <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
             <div>
-              <span class="text-xs text-slate-400 block">Harga E-Book</span>
+              <span class="text-xs text-slate-400 block">Harga</span>
               <span id="detail-price" class="text-xl font-extrabold text-slate-900"></span>
             </div>
             <button id="detail-action-btn" class="px-6 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition"></button>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHECKOUT BUKU FISIK -->
+  <div id="checkout-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[92vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <h3 class="text-lg font-bold text-slate-900">Checkout Buku Fisik</h3>
+        <button onclick="closeCheckoutModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitPhysicalOrder(event)" class="p-6 space-y-4">
+        <input type="hidden" id="co-book-id">
+
+        <!-- Ringkasan Buku -->
+        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <img id="co-cover" src="" class="w-12 h-16 object-cover rounded-md border border-slate-200 bg-white">
+          <div class="flex-1 min-w-0">
+            <p id="co-title" class="font-bold text-sm text-slate-900 truncate"></p>
+            <p id="co-unit-price" class="text-xs text-slate-500"></p>
+            <p id="co-stock-label" class="text-[11px] font-semibold text-amber-700 mt-0.5"></p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs text-slate-500">Qty:</label>
+            <input type="number" id="co-qty" min="1" value="1" oninput="recalcCheckoutTotal()"
+              class="w-16 px-2 py-1.5 text-sm font-bold text-center border border-slate-300 rounded-lg">
+          </div>
+        </div>
+
+        <!-- Opsi Pengiriman -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pengiriman *</label>
+          <select id="co-shipping-method" onchange="handleShippingMethodChange()"
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+            <option value="AMBIL_DI_KANTOR">Ambil di Kantor (Rp 0)</option>
+            <option value="KURIR_DFOD">Kirim Kurir — Bayar Ongkir di Tujuan / DFOD (Rp 0 di web)</option>
+            <option value="KURIR_FLAT">Kirim Kurir — Tarif Flat (Rp 20.000)</option>
+          </select>
+        </div>
+
+        <!-- Data Penerima -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Penerima *</label>
+            <input type="text" id="co-name" required placeholder="Nama lengkap"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">No. WhatsApp *</label>
+            <input type="tel" id="co-phone" required placeholder="0812xxxxxxxx"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+          </div>
+        </div>
+
+        <div id="co-address-wrapper" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Lengkap Pengiriman *</label>
+          <textarea id="co-address" rows="3" placeholder="Jalan, No. Rumah, Kecamatan, Kota/Kabupaten, Kode Pos"
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"></textarea>
+        </div>
+
+        <!-- Rincian Total -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-sm">
+          <div class="flex justify-between text-slate-600">
+            <span>Subtotal Buku</span>
+            <span id="co-subtotal">Rp 0</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Ongkos Kirim</span>
+            <span id="co-shipping-cost">Rp 0</span>
+          </div>
+          <div class="flex justify-between font-extrabold text-slate-900 pt-2 border-t border-slate-200 text-base">
+            <span>Total Pembayaran</span>
+            <span id="co-total">Rp 0</span>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-pay-physical"
+          class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition">
+          <i class="fa-solid fa-credit-card mr-1.5"></i>Lanjut ke Pembayaran
+        </button>
+      </form>
     </div>
   </div>
 
@@ -222,7 +330,7 @@
           <i class="fa-solid fa-book-open"></i>
         </div>
         <h3 id="auth-title" class="text-xl font-bold text-slate-900">Masuk ke Akun</h3>
-        <p class="text-xs text-slate-500 mt-1">Simpan dan baca koleksi e-book Anda kapan saja.</p>
+        <p class="text-xs text-slate-500 mt-1">Simpan e-book dan pantau status pengiriman buku fisik Anda.</p>
       </div>
 
       <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3.5">
@@ -289,7 +397,6 @@
       </div>
       <div id="canvas-wrapper" class="hidden relative shadow-2xl">
         <canvas id="pdf-canvas" class="rounded-md bg-white max-w-full"></canvas>
-        <!-- Watermark Email Pembeli -->
         <div id="reader-watermark" class="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-15">
           <span class="text-slate-900 font-bold text-xl sm:text-3xl -rotate-45 whitespace-nowrap"></span>
         </div>
@@ -298,11 +405,12 @@
   </div>
 
   <script>
-    // =========================================================================
-    // GANTI 2 BARIS DI BAWAH INI DENGAN MILIK SUPABASE ANDA
-    // =========================================================================
+
+
+    
     const SUPABASE_URL = 'https://hhbghudcjnqzohksebox.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_b8BjVmh_WoFus_3QDpksNg_2ipxO4Gf';
+
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -310,11 +418,14 @@
     let currentSession = null;
     let allBooks = [];
     let ownedBookIds = new Set();
+    let userPhysicalOrders = [];
     let activeTab = 'store';
+    let librarySubtab = 'ebooks';
+    let typeFilter = 'all';
     let searchQuery = '';
     let isRegisterMode = false;
+    let activeCheckoutBook = null;
 
-    // State PDF.js
     let pdfDoc = null;
     let currentPage = 1;
     let currentScale = 1.3;
@@ -323,18 +434,23 @@
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount || 0);
     }
 
+    function formatDate(iso) {
+      if (!iso) return '-';
+      return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
     async function initApp() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       setSessionUI(session);
 
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         setSessionUI(session);
-        loadUserLibrary().then(renderBooks);
+        Promise.all([loadUserLibrary(), loadUserPhysicalOrders()]).then(renderView);
       });
 
-      await Promise.all([loadBooks(), loadUserLibrary()]);
+      await Promise.all([loadBooks(), loadUserLibrary(), loadUserPhysicalOrders()]);
       document.getElementById('loading-state').classList.add('hidden');
-      renderBooks();
+      renderView();
     }
 
     function setSessionUI(session) {
@@ -353,68 +469,111 @@
         userMenu.classList.add('hidden');
         userMenu.classList.remove('flex');
         ownedBookIds.clear();
+        userPhysicalOrders = [];
       }
     }
 
     async function loadBooks() {
       const { data, error } = await supabaseClient
         .from('books')
-        .select('id, title, author, price, cover_url, description, created_at')
+        .select('id, title, author, price, cover_url, description, product_type, stock, created_at')
         .order('created_at', { ascending: false });
-
       if (!error && data) allBooks = data;
     }
 
     async function loadUserLibrary() {
-      if (!currentSession) {
-        ownedBookIds = new Set();
-        return;
-      }
+      if (!currentSession) { ownedBookIds = new Set(); return; }
       const { data, error } = await supabaseClient
         .from('user_library')
         .select('book_id')
         .eq('user_id', currentSession.user.id);
+      if (!error && data) ownedBookIds = new Set(data.map((i) => i.book_id));
+    }
 
-      if (!error && data) {
-        ownedBookIds = new Set(data.map((item) => item.book_id));
-      }
+    async function loadUserPhysicalOrders() {
+      if (!currentSession) { userPhysicalOrders = []; return; }
+      const { data, error } = await supabaseClient
+        .from('transactions')
+        .select('*, books(title, cover_url)')
+        .eq('user_id', currentSession.user.id)
+        .eq('product_type', 'physical')
+        .order('created_at', { ascending: false });
+      if (!error && data) userPhysicalOrders = data;
     }
 
     function switchTab(tab) {
-      if (tab === 'library' && !currentSession) {
-        openAuthModal();
-        return;
-      }
+      if (tab === 'library' && !currentSession) return openAuthModal();
       activeTab = tab;
 
       const navStore = document.getElementById('nav-store');
       const navLibrary = document.getElementById('nav-library');
       const hero = document.getElementById('hero-section');
       const sortWrapper = document.getElementById('sort-wrapper');
+      const typeFilterBar = document.getElementById('type-filter-bar');
+      const librarySubtabs = document.getElementById('library-subtabs');
 
       if (tab === 'store') {
         navStore.className = 'px-3 py-2 text-sm font-semibold rounded-lg text-blue-600 bg-blue-50 transition';
         navLibrary.className = 'px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
         hero.classList.remove('hidden');
         sortWrapper.classList.remove('hidden');
-        document.getElementById('section-title').textContent = 'Katalog E-Book Pilihan';
-        document.getElementById('section-subtitle').textContent = 'Temukan publikasi dan bacaan terbaru.';
+        typeFilterBar.classList.remove('hidden');
+        librarySubtabs.classList.add('hidden');
+        document.getElementById('section-title').textContent = 'Katalog Buku Pilihan';
+        document.getElementById('section-subtitle').textContent = 'Temukan e-book dan buku cetak terbaru.';
       } else {
         navLibrary.className = 'px-3 py-2 text-sm font-semibold rounded-lg text-blue-600 bg-blue-50 transition';
         navStore.className = 'px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
         hero.classList.add('hidden');
         sortWrapper.classList.add('hidden');
-        document.getElementById('section-title').textContent = 'Koleksi Buku Saya';
-        document.getElementById('section-subtitle').textContent = 'E-book yang sudah Anda miliki dan siap dibaca.';
+        typeFilterBar.classList.add('hidden');
+        librarySubtabs.classList.remove('hidden');
+        document.getElementById('section-title').textContent = 'Koleksi & Pesanan Saya';
+        document.getElementById('section-subtitle').textContent = 'Baca e-book Anda atau pantau pengiriman buku fisik.';
       }
-      renderBooks();
+      renderView();
+    }
+
+    function switchLibrarySubtab(subtab) {
+      librarySubtab = subtab;
+      const btnEbooks = document.getElementById('subtab-ebooks');
+      const btnOrders = document.getElementById('subtab-orders');
+      if (subtab === 'ebooks') {
+        btnEbooks.className = 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition';
+        btnOrders.className = 'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
+      } else {
+        btnOrders.className = 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition';
+        btnEbooks.className = 'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
+      }
+      renderView();
+    }
+
+    function setTypeFilter(type) {
+      typeFilter = type;
+      ['all', 'digital', 'physical'].forEach((t) => {
+        const btn = document.getElementById(`filter-${t}`);
+        btn.className = t === type
+          ? 'px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition whitespace-nowrap'
+          : 'px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap';
+      });
+      renderView();
     }
 
     function handleSearch(val) {
       searchQuery = val.trim().toLowerCase();
       document.getElementById('search-desktop').value = val;
       document.getElementById('search-mobile').value = val;
-      renderBooks();
+      renderView();
+    }
+
+    function renderView() {
+      if (activeTab === 'library' && librarySubtab === 'orders') {
+        document.getElementById('books-grid').classList.add('hidden');
+        renderPhysicalOrders();
+      } else {
+        document.getElementById('physical-orders-list').classList.add('hidden');
+        renderBooks();
+      }
     }
 
     function renderBooks() {
@@ -423,8 +582,12 @@
       const emptyAction = document.getElementById('empty-action-btn');
 
       let list = activeTab === 'library'
-        ? allBooks.filter((b) => ownedBookIds.has(b.id))
+        ? allBooks.filter((b) => ownedBookIds.has(b.id) && (b.product_type || 'digital') === 'digital')
         : [...allBooks];
+
+      if (activeTab === 'store' && typeFilter !== 'all') {
+        list = list.filter((b) => (b.product_type || 'digital') === typeFilter);
+      }
 
       if (searchQuery) {
         list = list.filter((b) =>
@@ -443,12 +606,12 @@
         grid.classList.add('hidden');
         empty.classList.remove('hidden');
         if (activeTab === 'library') {
-          document.getElementById('empty-title').textContent = 'Koleksi Anda masih kosong';
-          document.getElementById('empty-desc').textContent = 'Buku yang Anda beli akan otomatis muncul di sini.';
+          document.getElementById('empty-title').textContent = 'Koleksi E-Book masih kosong';
+          document.getElementById('empty-desc').textContent = 'E-book yang Anda beli akan otomatis muncul di sini.';
           emptyAction.classList.remove('hidden');
         } else {
-          document.getElementById('empty-title').textContent = 'E-book tidak ditemukan';
-          document.getElementById('empty-desc').textContent = 'Coba gunakan kata kunci pencarian yang lain.';
+          document.getElementById('empty-title').textContent = 'Produk tidak ditemukan';
+          document.getElementById('empty-desc').textContent = 'Coba gunakan kata kunci atau filter lain.';
           emptyAction.classList.add('hidden');
         }
         return;
@@ -458,17 +621,60 @@
       grid.classList.remove('hidden');
 
       grid.innerHTML = list.map((book) => {
-        const isOwned = ownedBookIds.has(book.id);
-        const cover = book.cover_url || 'https://placehold.co/300x400?text=E-Book';
+        const isPhysical = book.product_type === 'physical';
+        const isOwned = !isPhysical && ownedBookIds.has(book.id);
+        const outOfStock = isPhysical && (book.stock || 0) <= 0;
+        const cover = book.cover_url || 'https://placehold.co/300x400?text=Buku';
+
+        const topBadge = isOwned
+          ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow-sm"><i class="fa-solid fa-check mr-1"></i>Dimiliki</span>`
+          : isPhysical
+            ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm"><i class="fa-solid fa-box mr-1"></i>Buku Fisik</span>`
+            : `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-tablet-screen-button mr-1"></i>E-Book</span>`;
+
+        let actionHtml = '';
+        if (isOwned) {
+          actionHtml = `
+            <button onclick="openReader('${book.id}')"
+              class="w-full py-2 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition">
+              <i class="fa-solid fa-book-open-reader mr-1.5"></i>Baca Sekarang
+            </button>`;
+        } else if (outOfStock) {
+          actionHtml = `
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <span class="font-extrabold text-slate-400 text-sm sm:text-base">${formatRupiah(book.price)}</span>
+              <span class="text-[11px] font-bold text-red-600">Stok Habis</span>
+            </div>
+            <button disabled class="w-full py-2 text-xs sm:text-sm font-semibold bg-slate-200 text-slate-500 rounded-xl cursor-not-allowed">
+              Stok Habis
+            </button>`;
+        } else if (isPhysical) {
+          actionHtml = `
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatRupiah(book.price)}</span>
+              <span class="text-[11px] font-medium text-slate-500">Stok: ${book.stock}</span>
+            </div>
+            <button onclick="openCheckoutModal('${book.id}')"
+              class="w-full py-2 text-xs sm:text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition">
+              <i class="fa-solid fa-bag-shopping mr-1.5"></i>Pesan Buku Fisik
+            </button>`;
+        } else {
+          actionHtml = `
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatRupiah(book.price)}</span>
+            </div>
+            <button onclick="buyEbook('${book.id}')"
+              class="w-full py-2 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
+              <i class="fa-solid fa-cart-shopping mr-1.5"></i>Beli E-Book
+            </button>`;
+        }
+
         return `
           <article class="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
             <div onclick="openDetailModal('${book.id}')" class="relative aspect-[3/4] bg-slate-100 overflow-hidden cursor-pointer">
               <img src="${cover}" alt="${book.title}" loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300">
-              ${isOwned ? `
-                <span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow-sm">
-                  <i class="fa-solid fa-check mr-1"></i>Dimiliki
-                </span>` : ''}
+                class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 ${outOfStock ? 'grayscale opacity-70' : ''}">
+              ${topBadge}
             </div>
             <div class="p-4 flex-1 flex flex-col justify-between">
               <div onclick="openDetailModal('${book.id}')" class="cursor-pointer">
@@ -477,25 +683,71 @@
                 </h3>
                 <p class="text-xs text-slate-500 mt-1 truncate">${book.author || 'Tim Penulis'}</p>
               </div>
-              <div class="mt-4 pt-3 border-t border-slate-100">
-                ${isOwned ? `
-                  <button onclick="openReader('${book.id}')"
-                    class="w-full py-2 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition">
-                    <i class="fa-solid fa-book-open-reader mr-1.5"></i>Baca Sekarang
-                  </button>
-                ` : `
-                  <div class="flex items-center justify-between gap-2 mb-2.5">
-                    <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatRupiah(book.price)}</span>
-                  </div>
-                  <button onclick="buyBook('${book.id}')"
-                    class="w-full py-2 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
-                    <i class="fa-solid fa-cart-shopping mr-1.5"></i>Beli E-Book
-                  </button>
-                `}
-              </div>
+              <div class="mt-4 pt-3 border-t border-slate-100">${actionHtml}</div>
             </div>
           </article>
         `;
+      }).join('');
+    }
+
+    function renderPhysicalOrders() {
+      const container = document.getElementById('physical-orders-list');
+      const empty = document.getElementById('empty-state');
+      const emptyAction = document.getElementById('empty-action-btn');
+
+      if (userPhysicalOrders.length === 0) {
+        container.classList.add('hidden');
+        empty.classList.remove('hidden');
+        document.getElementById('empty-title').textContent = 'Belum ada pesanan buku fisik';
+        document.getElementById('empty-desc').textContent = 'Pesanan buku cetak Anda akan tampil di sini beserta nomor resinya.';
+        emptyAction.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      container.innerHTML = userPhysicalOrders.map((tx) => {
+        const isPaid = tx.status === 'PAID';
+        const shipStatus = tx.shipping_status || 'MENUNGGU_DIKEMAS';
+        const cover = tx.books?.cover_url || 'https://placehold.co/80x100?text=Buku';
+        const methodLabel = tx.shipping_method === 'AMBIL_DI_KANTOR'
+          ? 'Ambil di Kantor'
+          : tx.shipping_method === 'KURIR_FLAT'
+            ? 'Kurir (Flat Rp 20rb)'
+            : 'Kurir (Bayar Ongkir di Tujuan)';
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row gap-4 justify-between">
+            <div class="flex gap-4">
+              <img src="${cover}" class="w-16 h-20 object-cover rounded-lg border border-slate-200 shrink-0 bg-slate-100">
+              <div>
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="font-mono text-xs font-bold text-slate-500">${tx.order_id}</span>
+                  <span class="px-2 py-0.5 text-[11px] font-bold rounded-full ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">
+                    ${isPaid ? 'LUNAS' : tx.status}
+                  </span>
+                </div>
+                <h4 class="font-bold text-slate-900">${tx.books?.title || 'Buku Fisik'} <span class="text-blue-600">(${tx.quantity || 1}x)</span></h4>
+                <p class="text-xs text-slate-500 mt-0.5">${formatDate(tx.created_at)} &bull; ${methodLabel}</p>
+                <p class="text-xs text-slate-600 mt-1">Penerima: <b>${tx.shipping_name || '-'}</b> (${tx.shipping_phone || '-'})</p>
+              </div>
+            </div>
+            <div class="sm:text-right flex flex-col justify-between border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
+              <div>
+                <span class="text-xs text-slate-400 block">Total Bayar</span>
+                <span class="font-extrabold text-slate-900 text-base">${formatRupiah(tx.amount)}</span>
+              </div>
+              ${isPaid ? `
+                <div class="mt-2">
+                  <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                    <i class="fa-solid fa-truck mr-1"></i>${shipStatus.replace(/_/g, ' ')}
+                  </span>
+                  ${tx.tracking_number ? `<p class="text-xs font-mono text-slate-700 mt-1">Resi: <b>${tx.tracking_number}</b></p>` : ''}
+                </div>
+              ` : ''}
+            </div>
+          </div>`;
       }).join('');
     }
 
@@ -503,27 +755,42 @@
     function openDetailModal(bookId) {
       const book = allBooks.find((b) => b.id === bookId);
       if (!book) return;
-      const isOwned = ownedBookIds.has(book.id);
+      const isPhysical = book.product_type === 'physical';
+      const isOwned = !isPhysical && ownedBookIds.has(book.id);
+      const outOfStock = isPhysical && (book.stock || 0) <= 0;
 
-      document.getElementById('detail-cover').src = book.cover_url || 'https://placehold.co/300x400?text=E-Book';
+      document.getElementById('detail-cover').src = book.cover_url || 'https://placehold.co/300x400?text=Buku';
       document.getElementById('detail-title').textContent = book.title;
       document.getElementById('detail-author').textContent = `Oleh ${book.author || 'Tim Penulis'}`;
-      document.getElementById('detail-desc').textContent = book.description || 'Tidak ada deskripsi tambahan untuk e-book ini.';
+      document.getElementById('detail-desc').textContent = book.description || 'Tidak ada deskripsi tambahan.';
       document.getElementById('detail-price').textContent = formatRupiah(book.price);
 
-      const badge = document.getElementById('detail-badge');
+      const badges = document.getElementById('detail-badges');
+      badges.innerHTML = isPhysical
+        ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Buku Fisik</span>
+           <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">Stok: ${book.stock || 0}</span>`
+        : `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">E-Book Digital</span>` +
+          (isOwned ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Sudah Dimiliki</span>` : '');
+
       const actionBtn = document.getElementById('detail-action-btn');
+      actionBtn.disabled = false;
 
       if (isOwned) {
-        badge.classList.remove('hidden');
         actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition';
         actionBtn.innerHTML = '<i class="fa-solid fa-book-open-reader mr-1.5"></i>Baca Sekarang';
         actionBtn.onclick = () => { closeDetailModal(); openReader(book.id); };
+      } else if (outOfStock) {
+        actionBtn.disabled = true;
+        actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-slate-200 text-slate-500 rounded-xl cursor-not-allowed';
+        actionBtn.innerHTML = 'Stok Habis';
+      } else if (isPhysical) {
+        actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition';
+        actionBtn.innerHTML = '<i class="fa-solid fa-bag-shopping mr-1.5"></i>Pesan Buku Fisik';
+        actionBtn.onclick = () => { closeDetailModal(); openCheckoutModal(book.id); };
       } else {
-        badge.classList.add('hidden');
         actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition';
         actionBtn.innerHTML = '<i class="fa-solid fa-cart-shopping mr-1.5"></i>Beli E-Book';
-        actionBtn.onclick = () => { closeDetailModal(); buyBook(book.id); };
+        actionBtn.onclick = () => { closeDetailModal(); buyEbook(book.id); };
       }
 
       document.getElementById('detail-modal').classList.remove('hidden');
@@ -533,14 +800,136 @@
       document.getElementById('detail-modal').classList.add('hidden');
     }
 
-    // AUTH MODAL
-    function openAuthModal() {
-      document.getElementById('auth-modal').classList.remove('hidden');
+    // CHECKOUT BUKU FISIK
+    function openCheckoutModal(bookId) {
+      if (!currentSession) return openAuthModal();
+      const book = allBooks.find((b) => b.id === bookId);
+      if (!book) return;
+
+      activeCheckoutBook = book;
+      document.getElementById('co-book-id').value = book.id;
+      document.getElementById('co-cover').src = book.cover_url || 'https://placehold.co/80x100?text=Buku';
+      document.getElementById('co-title').textContent = book.title;
+      document.getElementById('co-unit-price').textContent = `${formatRupiah(book.price)} / pcs`;
+      document.getElementById('co-stock-label').textContent = `Tersedia ${book.stock} pcs`;
+
+      const qtyInput = document.getElementById('co-qty');
+      qtyInput.value = 1;
+      qtyInput.max = book.stock || 1;
+
+      document.getElementById('co-shipping-method').value = 'AMBIL_DI_KANTOR';
+      handleShippingMethodChange();
+      document.getElementById('checkout-modal').classList.remove('hidden');
     }
 
-    function closeAuthModal() {
-      document.getElementById('auth-modal').classList.add('hidden');
+    function closeCheckoutModal() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+      activeCheckoutBook = null;
     }
+
+    function handleShippingMethodChange() {
+      const method = document.getElementById('co-shipping-method').value;
+      const addrWrap = document.getElementById('co-address-wrapper');
+      const addrInput = document.getElementById('co-address');
+
+      if (method === 'AMBIL_DI_KANTOR') {
+        addrWrap.classList.add('hidden');
+        addrInput.required = false;
+      } else {
+        addrWrap.classList.remove('hidden');
+        addrInput.required = true;
+      }
+      recalcCheckoutTotal();
+    }
+
+    function recalcCheckoutTotal() {
+      if (!activeCheckoutBook) return;
+      const qtyInput = document.getElementById('co-qty');
+      let qty = parseInt(qtyInput.value, 10) || 1;
+      if (qty < 1) qty = 1;
+      if (qty > activeCheckoutBook.stock) {
+        qty = activeCheckoutBook.stock;
+        qtyInput.value = qty;
+      }
+
+      const method = document.getElementById('co-shipping-method').value;
+      const shippingCost = method === 'KURIR_FLAT' ? 20000 : 0;
+      const subtotal = Number(activeCheckoutBook.price) * qty;
+      const total = subtotal + shippingCost;
+
+      document.getElementById('co-subtotal').textContent = formatRupiah(subtotal);
+      document.getElementById('co-shipping-cost').textContent = method === 'KURIR_DFOD' ? 'Bayar di Tujuan' : formatRupiah(shippingCost);
+      document.getElementById('co-total').textContent = formatRupiah(total);
+    }
+
+    async function submitPhysicalOrder(e) {
+      e.preventDefault();
+      if (!currentSession || !activeCheckoutBook) return;
+
+      const payload = {
+        bookId: activeCheckoutBook.id,
+        quantity: parseInt(document.getElementById('co-qty').value, 10) || 1,
+        shippingMethod: document.getElementById('co-shipping-method').value,
+        shippingName: document.getElementById('co-name').value.trim(),
+        shippingPhone: document.getElementById('co-phone').value.trim(),
+        shippingAddress: document.getElementById('co-address').value.trim()
+      };
+
+      closeCheckoutModal();
+      await triggerMidtransPayment(payload, true);
+    }
+
+    // PEMBAYARAN E-BOOK & FISIK (MIDTRANS SNAP)
+    async function buyEbook(bookId) {
+      if (!currentSession) return openAuthModal();
+      await triggerMidtransPayment({ bookId }, false);
+    }
+
+    async function triggerMidtransPayment(payload, isPhysical) {
+      Swal.fire({ title: 'Menyiapkan Pembayaran...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      try {
+        const res = await fetch('/api/create-transaction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentSession.access_token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        Swal.close();
+
+        if (!res.ok) return Swal.fire('Gagal', data.error || 'Gagal membuat tagihan pembayaran.', 'error');
+
+        window.snap.pay(data.token, {
+          onSuccess: async () => {
+            Swal.fire(
+              'Pembayaran Berhasil!',
+              isPhysical
+                ? 'Pesanan buku fisik Anda telah masuk antrean pengemasan. Pantau status & resinya di menu Pesanan.'
+                : 'E-Book otomatis ditambahkan ke Koleksi Anda.',
+              'success'
+            );
+            await Promise.all([loadBooks(), loadUserLibrary(), loadUserPhysicalOrders()]);
+            switchTab('library');
+            if (isPhysical) switchLibrarySubtab('orders');
+            else switchLibrarySubtab('ebooks');
+          },
+          onPending: async () => {
+            Swal.fire('Menunggu Pembayaran', 'Selesaikan pembayaran Anda agar pesanan segera diproses.', 'info');
+            if (isPhysical) await loadUserPhysicalOrders();
+          },
+          onError: () => {
+            Swal.fire('Pembayaran Gagal', 'Silakan coba kembali.', 'error');
+          }
+        });
+      } catch (err) {
+        Swal.close();
+        Swal.fire('Error', 'Gagal menghubungi server pembayaran.', 'error');
+      }
+    }
+
+    // AUTH
+    function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
+    function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
@@ -561,17 +950,9 @@
         const res = isRegisterMode
           ? await supabaseClient.auth.signUp({ email, password })
           : await supabaseClient.auth.signInWithPassword({ email, password });
-
         if (res.error) throw res.error;
-
         closeAuthModal();
-        Swal.fire({
-          icon: 'success',
-          title: isRegisterMode ? 'Pendaftaran Berhasil' : 'Berhasil Masuk',
-          text: isRegisterMode ? 'Silakan cek email Anda jika diminta verifikasi.' : 'Selamat berbelanja dan membaca!',
-          timer: 1800,
-          showConfirmButton: false
-        });
+        Swal.fire({ icon: 'success', title: isRegisterMode ? 'Pendaftaran Berhasil' : 'Berhasil Masuk', timer: 1500, showConfirmButton: false });
       } catch (err) {
         Swal.fire('Gagal', err.message, 'error');
       } finally {
@@ -590,52 +971,6 @@
     async function logout() {
       await supabaseClient.auth.signOut();
       switchTab('store');
-    }
-
-    // PEMBAYARAN MIDTRANS SNAP
-    async function buyBook(bookId) {
-      if (!currentSession) {
-        openAuthModal();
-        return;
-      }
-
-      Swal.fire({ title: 'Menyiapkan Pembayaran...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-      try {
-        const res = await fetch('/api/create-transaction', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${currentSession.access_token}`
-          },
-          body: JSON.stringify({ bookId })
-        });
-
-        const data = await res.json();
-        Swal.close();
-
-        if (!res.ok) {
-          return Swal.fire('Gagal', data.error || 'Gagal membuat tagihan pembayaran.', 'error');
-        }
-
-        const snapToken = data.token || data.snapToken;
-        window.snap.pay(snapToken, {
-          onSuccess: async () => {
-            Swal.fire('Pembayaran Berhasil!', 'Buku otomatis ditambahkan ke Koleksi Saya.', 'success');
-            await loadUserLibrary();
-            switchTab('library');
-          },
-          onPending: () => {
-            Swal.fire('Menunggu Pembayaran', 'Selesaikan pembayaran Anda. Buku akan otomatis masuk ke Koleksi setelah lunas.', 'info');
-          },
-          onError: () => {
-            Swal.fire('Pembayaran Gagal', 'Silakan coba kembali.', 'error');
-          }
-        });
-      } catch (err) {
-        Swal.close();
-        Swal.fire('Error', 'Gagal menghubungi server pembayaran.', 'error');
-      }
     }
 
     // PEMBACA E-BOOK PDF.JS
