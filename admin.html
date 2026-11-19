@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - GKPI Book Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- NAVBAR -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 leading-tight">Admin E-Book</h1>
+          <p id="admin-email-label" class="text-xs text-slate-500">Memeriksa akses...</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition">
+          <i class="fa-solid fa-store mr-1"></i> Lihat Toko
+        </a>
+        <button id="btn-add-book" onclick="openFormModal()" class="hidden px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition">
+          <i class="fa-solid fa-plus mr-1"></i> Tambah Buku
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- KONTEN UTAMA -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Pesan Jika Belum Login / Bukan Admin -->
+    <div id="access-box" class="hidden max-w-md mx-auto bg-white rounded-xl border border-slate-200 shadow-sm p-6 text-center mt-12">
+      <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 id="access-title" class="text-lg font-bold text-slate-900 mb-1">Akses Terbatas</h2>
+      <p id="access-desc" class="text-sm text-slate-500 mb-5">Silakan login terlebih dahulu menggunakan akun Admin di halaman utama.</p>
+      <a href="/" class="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition">
+        Kembali ke Halaman Login
+      </a>
+    </div>
+
+    <!-- Tabel Daftar Buku -->
+    <div id="admin-content" class="hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Daftar Katalog E-Book</h2>
+          <p class="text-sm text-slate-500">Kelola buku, harga, sampul, dan file Google Drive.</p>
+        </div>
+        <span id="book-count" class="text-xs font-semibold px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-600 w-fit shadow-sm">
+          0 Buku
+        </span>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
+                <th class="py-3.5 px-4">Buku</th>
+                <th class="py-3.5 px-4">Harga</th>
+                <th class="py-3.5 px-4">ID Google Drive</th>
+                <th class="py-3.5 px-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="books-table-body" class="divide-y divide-slate-100 text-sm">
+              <!-- Diisi otomatis oleh JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL FORM TAMBAH / EDIT BUKU -->
+  <div id="book-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white">
+        <h3 id="modal-title" class="text-lg font-bold text-slate-900">Tambah Buku Baru</h3>
+        <button onclick="closeFormModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="book-form" onsubmit="saveBook(event)" class="p-6 space-y-4">
+        <input type="hidden" id="book-id">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Judul E-Book *</label>
+          <input type="text" id="book-title" required placeholder="Contoh: Suara GKPI Edisi Desember 2026"
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Penulis / Penerbit</label>
+            <input type="text" id="book-author" placeholder="Tim Penulis"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp) *</label>
+            <input type="number" id="book-price" required min="1000" step="500" placeholder="49000"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Link atau ID File Google Drive *</label>
+          <input type="text" id="book-gdrive" required placeholder="Tempel link Google Drive atau ID filenya"
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <p class="text-xs text-slate-400 mt-1">Pastikan akses file di Google Drive diatur ke: <b>Siapa saja yang memiliki link (Pelihat)</b>.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">URL Gambar Sampul (Cover)</label>
+          <div class="flex gap-3 items-start">
+            <input type="url" id="book-cover" oninput="updateCoverPreview(this.value)" placeholder="https://..."
+              class="flex-1 px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <img id="cover-preview" src="https://placehold.co/80x100?text=Cover" alt="Preview"
+              class="w-12 h-16 object-cover rounded-md border border-slate-200 bg-slate-100 shrink-0">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi Singkat</label>
+          <textarea id="book-desc" rows="3" placeholder="Ringkasan isi e-book..."
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+          <button type="button" onclick="closeFormModal()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg">
+            Batal
+          </button>
+          <button type="submit" id="btn-submit-book" class="px-5 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">
+            Simpan Buku
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // GANTI DENGAN URL & ANON KEY SUPABASE ANDA (SAMA SEPERTI DI index.html)
+    const SUPABASE_URL = 'https://hhbghudcjnqzohksebox.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_b8BjVmh_WoFus_3QDpksNg_2ipxO4Gf';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentSession = null;
+    let allBooks = [];
+
+    async function initAdmin() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        document.getElementById('admin-email-label').textContent = 'Belum login';
+        document.getElementById('access-box').classList.remove('hidden');
+        return;
+      }
+
+      currentSession = session;
+      await loadBooks();
+    }
+
+    async function loadBooks() {
+      try {
+        const res = await fetch('/api/admin-books', {
+          headers: { Authorization: `Bearer ${currentSession.access_token}` }
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById('admin-email-label').textContent = 'Akses ditolak';
+          document.getElementById('access-title').textContent = 'Akses Ditolak';
+          document.getElementById('access-desc').textContent = data.error || 'Akun Anda tidak memiliki izin Admin.';
+          document.getElementById('access-box').classList.remove('hidden');
+          return;
+        }
+
+        document.getElementById('admin-email-label').textContent = data.email;
+        document.getElementById('btn-add-book').classList.remove('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+
+        allBooks = data.books || [];
+        renderTable();
+      } catch (err) {
+        Swal.fire('Error', 'Gagal terhubung ke server.', 'error');
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('books-table-body');
+      document.getElementById('book-count').textContent = `${allBooks.length} Buku`;
+
+      if (allBooks.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-10 text-center text-slate-400">
+              Belum ada buku. Klik tombol <b>+ Tambah Buku</b> di kanan atas.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allBooks.map((book) => {
+        const cover = book.cover_url || 'https://placehold.co/80x100?text=No+Cover';
+        const priceFormatted = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(book.price || 0);
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-3">
+                <img src="${cover}" alt="${book.title}" class="w-11 h-14 object-cover rounded-md border border-slate-200 bg-slate-100 shrink-0">
+                <div class="min-w-0">
+                  <p class="font-semibold text-slate-900 truncate max-w-xs">${book.title}</p>
+                  <p class="text-xs text-slate-500">${book.author || '-'}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 font-semibold text-slate-700 whitespace-nowrap">${priceFormatted}</td>
+            <td class="py-3.5 px-4">
+              <code class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">${book.gdrive_file_id || '-'}</code>
+            </td>
+            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+              <button onclick="openFormModal('${book.id}')" class="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg mr-1 transition">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+              </button>
+              <button onclick="deleteBook('${book.id}', '${book.title.replace(/'/g, "\\'")}')" class="px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition">
+                <i class="fa-solid fa-trash mr-1"></i> Hapus
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function openFormModal(bookId = null) {
+      document.getElementById('book-form').reset();
+      document.getElementById('book-id').value = '';
+
+      if (bookId) {
+        const book = allBooks.find((b) => b.id === bookId);
+        if (!book) return;
+        document.getElementById('modal-title').textContent = 'Edit E-Book';
+        document.getElementById('book-id').value = book.id;
+        document.getElementById('book-title').value = book.title || '';
+        document.getElementById('book-author').value = book.author || '';
+        document.getElementById('book-price').value = book.price || '';
+        document.getElementById('book-gdrive').value = book.gdrive_file_id || '';
+        document.getElementById('book-cover').value = book.cover_url || '';
+        document.getElementById('book-desc').value = book.description || '';
+        updateCoverPreview(book.cover_url);
+      } else {
+        document.getElementById('modal-title').textContent = 'Tambah Buku Baru';
+        updateCoverPreview('');
+      }
+
+      document.getElementById('book-modal').classList.remove('hidden');
+    }
+
+    function closeFormModal() {
+      document.getElementById('book-modal').classList.add('hidden');
+    }
+
+    function updateCoverPreview(url) {
+      document.getElementById('cover-preview').src = url && url.trim() ? url.trim() : 'https://placehold.co/80x100?text=Cover';
+    }
+
+    async function saveBook(e) {
+      e.preventDefault();
+      const id = document.getElementById('book-id').value;
+      const isEdit = Boolean(id);
+
+      const payload = {
+        id: id || undefined,
+        title: document.getElementById('book-title').value,
+        author: document.getElementById('book-author').value,
+        price: document.getElementById('book-price').value,
+        gdrive_file_id: document.getElementById('book-gdrive').value,
+        cover_url: document.getElementById('book-cover').value,
+        description: document.getElementById('book-desc').value
+      };
+
+      const btn = document.getElementById('btn-submit-book');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const res = await fetch('/api/admin-books', {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentSession.access_token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          return Swal.fire('Gagal', data.error || 'Terjadi kesalahan saat menyimpan.', 'error');
+        }
+
+        closeFormModal();
+        await loadBooks();
+        Swal.fire('Berhasil!', isEdit ? 'Data buku berhasil diperbarui.' : 'Buku baru berhasil ditambahkan.', 'success');
+      } catch (err) {
+        Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Buku';
+      }
+    }
+
+    async function deleteBook(id, title) {
+      const confirm = await Swal.fire({
+        title: 'Hapus Buku?',
+        text: `Buku "${title}" akan dihapus dari katalog.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/admin-books?id=${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${currentSession.access_token}` }
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          return Swal.fire('Gagal Menghapus', data.error || 'Buku tidak bisa dihapus.', 'error');
+        }
+
+        await loadBooks();
+        Swal.fire('Terhapus!', 'Buku telah dihapus dari katalog.', 'success');
+      } catch (err) {
+        Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+      }
+    }
+
+    initAdmin();
+  </script>
+</body>
+</html>
