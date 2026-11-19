@@ -18,7 +18,16 @@ export default async function handler(req, res) {
     if (!userRes.ok) return res.status(401).json({ error: 'Sesi login tidak valid.' });
     const user = await userRes.json();
 
-    const { bookId, quantity = 1, shippingMethod, shippingName, shippingPhone, shippingAddress } = req.body;
+    // [DIUBAH] Tambah shippingCost: clientShippingCost = 0
+    const {
+      bookId,
+      quantity = 1,
+      shippingMethod,
+      shippingCost: clientShippingCost = 0,
+      shippingName,
+      shippingPhone,
+      shippingAddress
+    } = req.body;
     if (!bookId) return res.status(400).json({ error: 'ID buku tidak ditemukan.' });
 
     // 2. Ambil data buku dari Supabase
@@ -35,6 +44,7 @@ export default async function handler(req, res) {
     let shippingCost = 0;
     let finalShippingMethod = null;
 
+    // [DIUBAH] Pakai ongkir otomatis dari Biteship jika bukan Ambil di Kantor
     if (isPhysical) {
       if ((book.stock || 0) < qty) {
         return res.status(400).json({ error: `Stok buku tidak mencukupi (tersisa ${book.stock || 0}).` });
@@ -42,15 +52,13 @@ export default async function handler(req, res) {
       if (!shippingName || !shippingPhone) {
         return res.status(400).json({ error: 'Nama penerima dan nomor WhatsApp wajib diisi.' });
       }
-      if (shippingMethod !== 'AMBIL_DI_KANTOR' && !shippingAddress) {
-        return res.status(400).json({ error: 'Alamat pengiriman wajib diisi untuk pengiriman kurir.' });
-      }
 
       finalShippingMethod = shippingMethod || 'AMBIL_DI_KANTOR';
-      if (finalShippingMethod === 'KURIR_FLAT') {
-        shippingCost = 20000; // Tarif flat Rp 20.000
-      } else {
-        shippingCost = 0; // Ambil di Kantor / Bayar Ongkir di Tujuan (DFOD)
+      if (finalShippingMethod !== 'AMBIL_DI_KANTOR') {
+        if (!shippingAddress) {
+          return res.status(400).json({ error: 'Alamat pengiriman wajib diisi untuk pengiriman kurir.' });
+        }
+        shippingCost = Math.max(0, Number(clientShippingCost || 0));
       }
     }
 
