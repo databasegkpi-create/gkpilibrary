@@ -14,8 +14,8 @@ export default async function handler(req, res) {
     // 1. Verifikasi akun user yang sedang login
     const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'apikey': serviceKey
+        Authorization: `Bearer ${token}`,
+        apikey: serviceKey
       }
     });
     if (!userRes.ok) return res.status(401).json({ error: 'Sesi login tidak valid.' });
@@ -23,11 +23,11 @@ export default async function handler(req, res) {
 
     // 2. Cek apakah user sudah membeli buku ini di tabel user_library
     const libRes = await fetch(
-      `${supabaseUrl}/rest/v1/user_library?user_id=eq.${user.id}&book_id=eq.${bookId}&select=id,last_page,books(gdrive_file_id,title)`,
+      `${supabaseUrl}/rest/v1/user_library?user_id=eq.${user.id}&book_id=eq.${bookId}&select=id,books(gdrive_file_id,title)`,
       {
         headers: {
-          'apikey': serviceKey,
-          'Authorization': `Bearer ${serviceKey}`
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`
         }
       }
     );
@@ -37,16 +37,34 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Anda belum membeli buku ini.' });
     }
 
-    const gdriveFileId = libData[0].books.gdrive_file_id.trim();
+    const gdriveFileId = libData[0]?.books?.gdrive_file_id?.trim();
+    if (!gdriveFileId) {
+      return res.status(404).json({ error: 'ID file Google Drive belum diatur untuk buku ini.' });
+    }
 
-    // 3. Kembalikan stream token terverifikasi untuk dirender instan
-    return res.status(200).json({
-      status: 'success',
-      streamUrl: `https://drive.google.com/file/d/${gdriveFileId}/preview`,
-      title: libData[0].books.title,
-      lastPage: libData[0].last_page || 1,
-      userEmail: user.email
-    });
+    // 3. Unduh file biner PDF langsung dari Google Drive (lewati halaman konfirmasi)
+    const driveUrl = `https://drive.usercontent.google.com/download?id=${gdriveFileId}&export=download&confirm=t`;
+    const pdfRes = await fetch(driveUrl, { redirect: 'follow' });
+
+    if (!pdfRes.ok) {
+      return res.status(502).json({ error: 'Gagal mengambil file PDF dari Google Drive.' });
+    }
+
+    const contentType = pdfRes.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return res.status(403).json({
+        error: 'File PDF tidak bisa dibaca. Pastikan akses Google Drive diset ke: Siapa saja yang memiliki link (Pelihat).'
+      });
+    }
+
+    // 4. Kirim biner PDF ke PDF.js di browser
+    const arrayBuffer = await pdfRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.status(200).send(buffer);
 
   } catch (err) {
     return res.status(500).json({ error: 'Terjadi kesalahan server: ' + err.message });
