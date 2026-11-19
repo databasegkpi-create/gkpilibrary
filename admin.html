@@ -1023,8 +1023,19 @@
       document.getElementById('book-modal').classList.add('hidden');
     }
 
+   function formatCoverUrl(url) {
+      if (!url) return '';
+      const trimmed = url.trim();
+      const match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (trimmed.includes('drive.google.com') && match) {
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+      }
+      return trimmed;
+    }
+
     function updateCoverPreview(url) {
-      document.getElementById('cover-preview').src = url && url.trim() ? url.trim() : 'https://placehold.co/80x100?text=Cover';
+      const formatted = formatCoverUrl(url);
+      document.getElementById('cover-preview').src = formatted || 'https://placehold.co/80x100?text=Cover';
     }
 
     async function saveBook(e) {
@@ -1041,7 +1052,7 @@
         price: document.getElementById('book-price').value,
         gdrive_file_id: document.getElementById('book-gdrive').value,
         stock: document.getElementById('book-stock').value,
-        cover_url: document.getElementById('book-cover').value,
+        cover_url: formatCoverUrl(document.getElementById('book-cover').value),
         description: document.getElementById('book-desc').value
       };
 
