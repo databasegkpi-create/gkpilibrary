@@ -1,69 +1,81 @@
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const notification = req.body;
-  const { order_id, status_code, gross_amount, signature_key, transaction_status, fraud_status } = notification;
+  const { order_id, status_code, gross_amount, signature_key, transaction_status, fraud_status } = req.body;
+  const serverKey = process.env.MIDTRANS_SIGNATURE_KEY || process.env.MIDTRANS_SERVER_KEY;
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
- const serverKey = process.env.MIDTRANS_SIGNATURE_KEY || process.env.MIDTRANS_SERVER_KEY;
-
-  // 1. CEK SEGEL KEAMANAN SHA-512 (Memastikan laporan ini 100% asli dari Midtrans, bukan hacker)
-  const validSignature = crypto
+  // 1. Verifikasi segel SHA-512 Midtrans
+  const expectedSignature = crypto
     .createHash('sha512')
     .update(`${order_id}${status_code}${gross_amount}${serverKey}`)
     .digest('hex');
 
-  if (signature_key !== validSignature) {
-    return res.status(403).json({ error: 'Signature palsu ditolak!' });
+  if (signature_key !== expectedSignature) {
+    return res.status(403).json({ error: 'Invalid signature' });
   }
 
-  // 2. Cek apakah uang benar-benar sudah masuk (settlement / capture)
-  const isPaid =
-    transaction_status === 'settlement' ||
-    (transaction_status === 'capture' && fraud_status === 'accept');
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const dbHeaders = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json'
+  };
 
-  if (isPaid) {
-    // 3. Ubah status transaksi di Supabase menjadi PAID dan ambil data pembeli & bukunya
-    const trxRes = await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}&select=user_id,book_id,amount`, {
-      headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` }
-    });
-    const trxList = await trxRes.json();
+  try {
+    const isPaid =
+      (transaction_status === 'capture' && fraud_status === 'accept') ||
+      transaction_status === 'settlement';
 
-    if (trxList && trxList.length > 0) {
-      const trx = trxList[0];
-
-      // Pastikan jumlah uang yang dibayar sesuai dengan tagihan di database
-      if (Number(gross_amount) >= Number(trx.amount)) {
-        await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}`, {
-          method: 'PATCH',
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ status: 'PAID' })
-        });
-
-        // 4. BUKA AKSES BUKU KE AKUN PEMBELI SECARA OTOMATIS
-        await fetch(`${supabaseUrl}/rest/v1/user_library`, {
-          method: 'POST',
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': `Bearer ${serviceKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify({
-            user_id: trx.user_id,
-            book_id: trx.book_id
-          })
-        });
-      }
+    if (!isPaid) {
+      return res.status(200).json({ status: 'ignored', transaction_status });
     }
-  }
 
-  return res.status(200).json({ status: 'OK' });
+    // 2. Cek transaksi di Supabase
+    const txRes = await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}&select=*`, {
+      headers: dbHeaders
+    });
+    const txList = await txRes.json();
+    const tx = txList[0];
+
+    if (!tx) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+
+    // Jika sudah PAID sebelumnya, hentikan agar stok tidak terpotong dua kali
+    if (tx.status === 'PAID') {
+      return res.status(200).json({ status: 'already_processed' });
+    }
+
+    // 3. Ubah status transaksi menjadi PAID
+    await fetch(`${supabaseUrl}/rest/v1/transactions?order_id=eq.${order_id}`, {
+      method: 'PATCH',
+      headers: dbHeaders,
+      body: JSON.stringify({ status: 'PAID' })
+    });
+
+    // 4. Jalankan aksi sesuai tipe produk
+    if (tx.product_type === 'physical') {
+      // Buku Fisik: Potong stok otomatis
+      await fetch(`${supabaseUrl}/rest/v1/rpc/decrement_book_stock`, {
+        method: 'POST',
+        headers: dbHeaders,
+        body: JSON.stringify({
+          p_book_id: tx.book_id,
+          p_qty: Number(tx.quantity || 1)
+        })
+      });
+    } else {
+      // E-Book: Masukkan ke Koleksi Saya (user_library)
+      await fetch(`${supabaseUrl}/rest/v1/user_library`, {
+        method: 'POST',
+        headers: { ...dbHeaders, Prefer: 'resolution=ignore-duplicates' },
+        body: JSON.stringify({ user_id: tx.user_id, book_id: tx.book_id })
+      });
+    }
+
+    return res.status(200).json({ status: 'ok' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Webhook error: ' + err.message });
+  }
 }
