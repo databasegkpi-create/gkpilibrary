@@ -818,13 +818,19 @@
       document.getElementById('detail-modal').classList.add('hidden');
     }
 
-    // CHECKOUT BUKU FISIK
+   let selectedArea = null;
+    let availableRates = [];
+    let areaSearchTimer = null;
+
     function openCheckoutModal(bookId) {
       if (!currentSession) return openAuthModal();
       const book = allBooks.find((b) => b.id === bookId);
       if (!book) return;
 
       activeCheckoutBook = book;
+      selectedArea = null;
+      availableRates = [];
+
       document.getElementById('co-book-id').value = book.id;
       document.getElementById('co-cover').src = book.cover_url || 'https://placehold.co/80x100?text=Buku';
       document.getElementById('co-title').textContent = book.title;
@@ -835,8 +841,11 @@
       qtyInput.value = 1;
       qtyInput.max = book.stock || 1;
 
-      document.getElementById('co-shipping-method').value = 'AMBIL_DI_KANTOR';
-      handleShippingMethodChange();
+      document.getElementById('co-area-search').value = '';
+      document.getElementById('co-area-results').classList.add('hidden');
+      document.getElementById('co-rates-wrapper').classList.add('hidden');
+      document.getElementById('co-shipping-mode').value = 'KURIR';
+      handleShippingModeChange();
       document.getElementById('checkout-modal').classList.remove('hidden');
     }
 
@@ -845,19 +854,105 @@
       activeCheckoutBook = null;
     }
 
-    function handleShippingMethodChange() {
-      const method = document.getElementById('co-shipping-method').value;
+    function handleShippingModeChange() {
+      const mode = document.getElementById('co-shipping-mode').value;
+      const courierSec = document.getElementById('co-courier-section');
       const addrWrap = document.getElementById('co-address-wrapper');
       const addrInput = document.getElementById('co-address');
 
-      if (method === 'AMBIL_DI_KANTOR') {
+      if (mode === 'AMBIL_DI_KANTOR') {
+        courierSec.classList.add('hidden');
         addrWrap.classList.add('hidden');
         addrInput.required = false;
       } else {
+        courierSec.classList.remove('hidden');
         addrWrap.classList.remove('hidden');
         addrInput.required = true;
       }
       recalcCheckoutTotal();
+    }
+
+    function handleQtyChange() {
+      recalcCheckoutTotal();
+      if (selectedArea) fetchShippingRates();
+    }
+
+    function searchDestinationArea(query) {
+      clearTimeout(areaSearchTimer);
+      const box = document.getElementById('co-area-results');
+      if (query.trim().length < 3) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      areaSearchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/shipping?q=${encodeURIComponent(query.trim())}`);
+          const data = await res.json();
+          const areas = data.areas || [];
+
+          if (areas.length === 0) {
+            box.innerHTML = `<div class="p-3 text-slate-400">Wilayah tidak ditemukan.</div>`;
+          } else {
+            box.innerHTML = areas.map((a) => `
+              <button type="button" onclick='selectArea(${JSON.stringify({ id: a.id, name: a.name })})'
+                class="w-full text-left px-3 py-2.5 hover:bg-blue-50 text-slate-700 transition">
+                ${a.name}
+              </button>
+            `).join('');
+          }
+          box.classList.remove('hidden');
+        } catch (err) {
+          box.classList.add('hidden');
+        }
+      }, 400);
+    }
+
+    function selectArea(area) {
+      selectedArea = area;
+      document.getElementById('co-area-search').value = area.name;
+      document.getElementById('co-area-results').classList.add('hidden');
+      fetchShippingRates();
+    }
+
+    async function fetchShippingRates() {
+      if (!selectedArea || !activeCheckoutBook) return;
+      const loading = document.getElementById('co-rates-loading');
+      const wrapper = document.getElementById('co-rates-wrapper');
+      const select = document.getElementById('co-courier-select');
+
+      loading.classList.remove('hidden');
+      wrapper.classList.add('hidden');
+
+      try {
+        const qty = parseInt(document.getElementById('co-qty').value, 10) || 1;
+        const res = await fetch('/api/shipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destinationAreaId: selectedArea.id,
+            weightGram: activeCheckoutBook.weight_gram || 300,
+            itemValue: activeCheckoutBook.price,
+            quantity: qty
+          })
+        });
+        const data = await res.json();
+        availableRates = data.pricing || [];
+
+        if (availableRates.length === 0) {
+          select.innerHTML = `<option value="">Kurir tidak tersedia untuk wilayah ini</option>`;
+        } else {
+          select.innerHTML = availableRates.map((r, idx) => `
+            <option value="${idx}">${r.courier_name} - ${r.courier_service_name} (${r.duration}) — ${formatRupiah(r.price)}</option>
+          `).join('');
+        }
+        wrapper.classList.remove('hidden');
+        recalcCheckoutTotal();
+      } catch (err) {
+        Swal.fire('Gagal', 'Tidak bisa mengambil tarif ongkir.', 'error');
+      } finally {
+        loading.classList.add('hidden');
+      }
     }
 
     function recalcCheckoutTotal() {
@@ -870,13 +965,19 @@
         qtyInput.value = qty;
       }
 
-      const method = document.getElementById('co-shipping-method').value;
-      const shippingCost = method === 'KURIR_FLAT' ? 20000 : 0;
+      const mode = document.getElementById('co-shipping-mode').value;
+      let shippingCost = 0;
+
+      if (mode === 'KURIR' && availableRates.length > 0) {
+        const idx = document.getElementById('co-courier-select').value;
+        if (availableRates[idx]) shippingCost = Number(availableRates[idx].price || 0);
+      }
+
       const subtotal = Number(activeCheckoutBook.price) * qty;
       const total = subtotal + shippingCost;
 
       document.getElementById('co-subtotal').textContent = formatRupiah(subtotal);
-      document.getElementById('co-shipping-cost').textContent = method === 'KURIR_DFOD' ? 'Bayar di Tujuan' : formatRupiah(shippingCost);
+      document.getElementById('co-shipping-cost').textContent = formatRupiah(shippingCost);
       document.getElementById('co-total').textContent = formatRupiah(total);
     }
 
@@ -884,13 +985,30 @@
       e.preventDefault();
       if (!currentSession || !activeCheckoutBook) return;
 
+      const mode = document.getElementById('co-shipping-mode').value;
+      let shippingMethod = 'AMBIL_DI_KANTOR';
+      let shippingCost = 0;
+      let fullAddress = 'Ambil di Kantor';
+
+      if (mode === 'KURIR') {
+        const idx = document.getElementById('co-courier-select').value;
+        const chosen = availableRates[idx];
+        if (!selectedArea || !chosen) {
+          return Swal.fire('Pilih Wilayah & Kurir', 'Silakan cari kecamatan tujuan dan pilih layanan kurir terlebih dahulu.', 'warning');
+        }
+        shippingMethod = `${chosen.courier_name} - ${chosen.courier_service_name} (${chosen.duration})`;
+        shippingCost = Number(chosen.price || 0);
+        fullAddress = `${document.getElementById('co-address').value.trim()} | ${selectedArea.name}`;
+      }
+
       const payload = {
         bookId: activeCheckoutBook.id,
         quantity: parseInt(document.getElementById('co-qty').value, 10) || 1,
-        shippingMethod: document.getElementById('co-shipping-method').value,
+        shippingMethod,
+        shippingCost,
         shippingName: document.getElementById('co-name').value.trim(),
         shippingPhone: document.getElementById('co-phone').value.trim(),
-        shippingAddress: document.getElementById('co-address').value.trim()
+        shippingAddress: fullAddress
       };
 
       closeCheckoutModal();
