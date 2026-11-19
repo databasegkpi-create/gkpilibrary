@@ -457,14 +457,87 @@
       }).join('');
     }
 
-    function renderShippingTable() {
+   function renderShippingTable() {
       const tbody = document.getElementById('shipping-table-body');
-      const physicalPaid = allTransactions.filter((t) => t.status === 'PAID' && t.product_type === 'physical');
+      const physicalOrders = allTransactions.filter(
+        (t) => t.product_type === 'physical' && (t.status === 'PAID' || (t.status === 'PENDING' && (t.order_id || '').startsWith('CASH-')))
+      );
 
-      if (physicalPaid.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-400">Belum ada pesanan buku fisik yang lunas.</td></tr>`;
+      if (physicalOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-400">Belum ada pesanan buku fisik.</td></tr>`;
         return;
       }
+
+      tbody.innerHTML = physicalOrders.map((tx) => {
+        const isPendingCash = tx.status !== 'PAID';
+        const statusMap = {
+          MENUNGGU_DIKEMAS: 'bg-amber-50 text-amber-700 border-amber-200',
+          DIKIRIM: 'bg-blue-50 text-blue-700 border-blue-200',
+          SELESAI: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        };
+        const st = tx.shipping_status || 'MENUNGGU_DIKEMAS';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition align-top">
+            <td class="py-3.5 px-4">
+              <p class="font-mono text-xs font-bold text-slate-800">${tx.order_id}</p>
+              <p class="font-semibold text-slate-900 mt-0.5">${tx.books?.title || 'Buku Fisik'} <span class="text-blue-600">(${tx.quantity || 1}x)</span></p>
+              <p class="text-xs text-slate-400">${formatDate(tx.created_at)}</p>
+            </td>
+            <td class="py-3.5 px-4 max-w-xs">
+              <p class="font-semibold text-slate-800">${tx.shipping_name || '-'}</p>
+              <p class="text-xs text-slate-600"><i class="fa-brands fa-whatsapp text-emerald-600 mr-1"></i>${tx.shipping_phone || '-'}</p>
+              <p class="text-xs text-slate-500 mt-1">${tx.shipping_address || '-'}</p>
+            </td>
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span class="text-xs font-medium text-slate-700 block">${tx.shipping_method || '-'}</span>
+              <span class="text-xs font-bold text-slate-900">${formatRupiah(tx.amount)}</span>
+            </td>
+            <td class="py-3.5 px-4">
+              ${isPendingCash
+                ? `<span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-full bg-red-50 text-red-700 border border-red-200">BELUM BAYAR (TUNAI)</span>`
+                : `<span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-full border ${statusMap[st] || statusMap.MENUNGGU_DIKEMAS}">${st.replace(/_/g, ' ')}</span>`
+              }
+              ${tx.tracking_number ? `<p class="text-xs text-slate-600 mt-1 font-mono">Resi/Info: ${tx.tracking_number}</p>` : ''}
+            </td>
+            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+              ${isPendingCash
+                ? `<button onclick="confirmCashPayment('${tx.order_id}', ${tx.amount})" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+                     <i class="fa-solid fa-money-bill-wave mr-1"></i>Terima Tunai
+                   </button>`
+                : `<button onclick="openShippingModal('${tx.order_id}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">
+                     <i class="fa-solid fa-truck-ramp-box mr-1"></i>Update
+                   </button>`
+              }
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    async function confirmCashPayment(orderId, amount) {
+      const confirm = await Swal.fire({
+        title: 'Konfirmasi Pembayaran Tunai?',
+        text: `Pastikan Anda sudah menerima uang tunai sebesar ${formatRupiah(amount)} untuk pesanan ${orderId}. Stok buku akan otomatis terpotong.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#059669',
+        confirmButtonText: 'Ya, Sudah Diterima',
+        cancelButtonText: 'Batal'
+      });
+      if (!confirm.isConfirmed) return;
+
+      const res = await fetch('/api/admin-books', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentSession.access_token}` },
+        body: JSON.stringify({ action: 'confirm_cash', order_id: orderId })
+      });
+      if (res.ok) {
+        await loadDashboard();
+        Swal.fire('Lunas!', 'Pembayaran tunai dicatat dan stok buku otomatis berkurang.', 'success');
+      } else {
+        Swal.fire('Gagal', 'Tidak dapat mengonfirmasi pembayaran.', 'error');
+      }
+    }
 
       tbody.innerHTML = physicalPaid.map((tx) => {
         const statusMap = {
