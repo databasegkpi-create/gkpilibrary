@@ -43,6 +43,12 @@
 
       <!-- Right Auth / Profile -->
       <div class="flex items-center gap-2 shrink-0">
+
+        <button onclick="openCartModal()" class="relative w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition" title="Keranjang Belanja">
+          <i class="fa-solid fa-cart-shopping text-sm"></i>
+          <span id="cart-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+        </button>
+        
         <button id="btn-login-nav" onclick="openAuthModal()"
           class="px-4 py-2 text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">
           Masuk
@@ -294,6 +300,29 @@
     </div>
   </div>
 
+  <!-- MODAL KERANJANG BELANJA -->
+  <div id="cart-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-end">
+    <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900"><i class="fa-solid fa-cart-shopping mr-2 text-blue-600"></i>Keranjang Belanja</h3>
+        <button onclick="closeCartModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="cart-items-container" class="flex-1 overflow-y-auto p-5 space-y-3"></div>
+      <div class="p-5 border-t border-slate-100 bg-slate-50 space-y-3">
+        <div class="flex justify-between text-sm font-bold text-slate-900">
+          <span>Subtotal Keranjang</span>
+          <span id="cart-subtotal">Rp 0</span>
+        </div>
+        <button onclick="proceedCartCheckout()" id="btn-cart-checkout"
+          class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition">
+          Checkout Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+  
   <!-- MODAL CHECKOUT BUKU FISIK -->
   <div id="checkout-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[92vh] overflow-y-auto">
@@ -499,6 +528,168 @@
     let selectedArea = null;
     let availableRates = [];
     let areaSearchTimer = null;
+
+    let cart = JSON.parse(localStorage.getItem('gkpi_cart') || '[]');
+    let isCartCheckoutMode = false;
+
+    function saveCart() {
+      localStorage.setItem('gkpi_cart', JSON.stringify(cart));
+      updateCartBadge();
+    }
+
+    function updateCartBadge() {
+      const badge = document.getElementById('cart-badge');
+      if (!badge) return;
+      const total = cart.reduce((sum, i) => sum + i.quantity, 0);
+      if (total > 0) {
+        badge.textContent = total;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function addToCart(bookId) {
+      const book = allBooks.find((b) => b.id === bookId);
+      if (!book) return;
+      const isPhys = book.product_type === 'physical';
+      if (isPhys && (book.stock || 0) <= 0) return Swal.fire('Stok Habis', 'Buku ini sedang habis.', 'warning');
+
+      const existing = cart.find((i) => i.bookId === bookId);
+      if (existing) {
+        if (!isPhys) {
+          return Swal.fire({ icon: 'info', title: 'E-Book sudah di keranjang', timer: 1200, showConfirmButton: false });
+        }
+        if (existing.quantity >= book.stock) {
+          return Swal.fire('Maksimal Stok', `Stok tersisa ${book.stock} pcs.`, 'warning');
+        }
+        existing.quantity += 1;
+      } else {
+        cart.push({ bookId, quantity: 1 });
+      }
+      saveCart();
+      Swal.fire({ icon: 'success', title: 'Masuk Keranjang', text: book.title, timer: 1100, showConfirmButton: false });
+    }
+
+    function updateCartQty(bookId, delta) {
+      const item = cart.find((i) => i.bookId === bookId);
+      const book = allBooks.find((b) => b.id === bookId);
+      if (!item || !book) return;
+
+      const nextQty = item.quantity + delta;
+      if (nextQty <= 0) {
+        cart = cart.filter((i) => i.bookId !== bookId);
+      } else if (book.product_type === 'physical' && nextQty > book.stock) {
+        return Swal.fire('Maksimal Stok', `Stok tersisa ${book.stock} pcs.`, 'warning');
+      } else {
+        item.quantity = book.product_type === 'physical' ? nextQty : 1;
+      }
+      saveCart();
+      renderCartModal();
+    }
+
+    function openCartModal() {
+      renderCartModal();
+      document.getElementById('cart-modal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cart-modal').classList.add('hidden');
+    }
+
+    function renderCartModal() {
+      const container = document.getElementById('cart-items-container');
+      const btn = document.getElementById('btn-cart-checkout');
+      let subtotal = 0;
+
+      if (cart.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">Keranjang masih kosong.</div>`;
+        document.getElementById('cart-subtotal').textContent = formatRupiah(0);
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+      container.innerHTML = cart.map((item) => {
+        const b = allBooks.find((x) => x.id === item.bookId);
+        if (!b) return '';
+        const isPhys = b.product_type === 'physical';
+        subtotal += Number(b.price) * item.quantity;
+        return `
+          <div class="flex gap-3 p-3 rounded-xl border border-slate-200 bg-white">
+            <img src="${b.cover_url || 'https://placehold.co/60x80?text=Buku'}" class="w-12 h-16 object-cover rounded-lg border border-slate-100 shrink-0">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-slate-900 truncate">${b.title}</p>
+              <p class="text-[11px] text-slate-400">${isPhys ? 'Buku Fisik' : 'E-Book'}</p>
+              <p class="text-xs font-extrabold text-blue-600 mt-1">${formatRupiah(b.price)}</p>
+            </div>
+            <div class="flex flex-col items-end justify-between">
+              <button onclick="updateCartQty('${b.id}', -999)" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+              ${isPhys ? `
+                <div class="flex items-center gap-1.5 bg-slate-100 rounded-lg px-1.5 py-0.5 text-xs font-bold">
+                  <button onclick="updateCartQty('${b.id}', -1)" class="px-1">-</button>
+                  <span>${item.quantity}</span>
+                  <button onclick="updateCartQty('${b.id}', 1)" class="px-1">+</button>
+                </div>` : `<span class="text-[11px] text-slate-400">1x</span>`}
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('cart-subtotal').textContent = formatRupiah(subtotal);
+    }
+
+    async function proceedCartCheckout() {
+      if (!currentSession) { closeCartModal(); return openAuthModal(); }
+      if (cart.length === 0) return;
+
+      const resolved = cart.map((i) => ({ ...i, book: allBooks.find((b) => b.id === i.bookId) })).filter((i) => i.book);
+      const hasPhysical = resolved.some((i) => i.book.product_type === 'physical');
+
+      closeCartModal();
+
+      // Jika hanya E-Book, langsung bayar ke Midtrans tanpa form alamat
+      if (!hasPhysical) {
+        const itemsPayload = resolved.map((i) => ({ bookId: i.bookId, quantity: 1 }));
+        cart = [];
+        saveCart();
+        return triggerMidtransPayment({ items: itemsPayload }, false);
+      }
+
+      // Jika ada Buku Fisik, buka modal checkout dengan ringkasan keranjang
+      isCartCheckoutMode = true;
+      const totalQty = resolved.reduce((s, i) => s + i.quantity, 0);
+      const totalPrice = resolved.reduce((s, i) => s + (Number(i.book.price) * i.quantity), 0);
+      const totalWeight = resolved.reduce((s, i) => s + ((i.book.product_type === 'physical' ? (i.book.weight_gram || 300) : 0) * i.quantity), 0);
+
+      activeCheckoutBook = {
+        id: resolved[0].book.id,
+        title: `${resolved.length} Judul Buku (${totalQty} pcs)`,
+        price: totalPrice,
+        stock: 999,
+        weight_gram: totalWeight,
+        cover_url: resolved[0].book.cover_url
+      };
+
+      selectedArea = null;
+      availableRates = [];
+      document.getElementById('co-cover').src = activeCheckoutBook.cover_url || 'https://placehold.co/80x100?text=Buku';
+      document.getElementById('co-title').textContent = activeCheckoutBook.title;
+      document.getElementById('co-unit-price').textContent = `Total Berat: ${(totalWeight / 1000).toFixed(2)} kg`;
+      document.getElementById('co-stock-label').textContent = 'Checkout Keranjang (1x Ongkir)';
+      document.getElementById('co-qty').value = 1;
+      document.getElementById('co-qty').disabled = true;
+
+      document.getElementById('co-area-search').value = '';
+      document.getElementById('co-area-results').classList.add('hidden');
+      document.getElementById('co-rates-wrapper').classList.add('hidden');
+      document.getElementById('co-shipping-mode').value = 'KURIR';
+      document.getElementById('co-payment-method').value = 'MIDTRANS';
+      handleShippingModeChange();
+      document.getElementById('checkout-modal').classList.remove('hidden');
+    }
 
     function formatRupiah(amount) {
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount || 0);
