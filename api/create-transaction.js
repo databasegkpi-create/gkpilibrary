@@ -1,3 +1,24 @@
+
+async function sendAdminWA(message) {
+  const token = process.env.FONNTE_TOKEN;
+  const target = process.env.ADMIN_WA_NUMBER;
+  if (!token || !target) return;
+
+  try {
+    await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ target, message })
+    });
+  } catch (err) {
+    console.error('Gagal kirim WA Fonnte:', err.message);
+  }
+}
+
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -96,8 +117,20 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Gagal mencatat transaksi: ' + (errTx.message || '') });
     }
 
-    // Jika Bayar Tunai di Kantor, lewati Midtrans dan langsung kembalikan sukses
+   // Jika Bayar Tunai di Kantor, kirim WA ke Admin & kembalikan sukses
     if (isCashOffice) {
+      const waMsg = [
+        `*PESANAN TUNAI BARU — GKPI BOOK STORE*`,
+        `Order ID: ${orderId}`,
+        `Produk: ${book.title} (${qty}x)`,
+        `Penerima: ${shippingName.trim()} (${shippingPhone.trim()})`,
+        `Pengiriman: ${finalShippingMethod}`,
+        `Total Tagihan: Rp ${grossAmount.toLocaleString('id-ID')}`,
+        ``,
+        `Status: Menunggu pembayaran tunai di kantor.`
+      ].join('\n');
+
+      await sendAdminWA(waMsg);
       return res.status(200).json({ isManualCash: true, orderId, amount: grossAmount });
     }
 
