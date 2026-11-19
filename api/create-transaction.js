@@ -11,17 +11,16 @@ export default async function handler(req, res) {
   const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 
   try {
-    // 1. Verifikasi user
     const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: { Authorization: `Bearer ${token}`, apikey: serviceKey }
     });
     if (!userRes.ok) return res.status(401).json({ error: 'Sesi login tidak valid.' });
     const user = await userRes.json();
 
-    // [DIUBAH] Tambah shippingCost: clientShippingCost = 0
     const {
       bookId,
       quantity = 1,
+      paymentMethod = 'MIDTRANS',
       shippingMethod,
       shippingCost: clientShippingCost = 0,
       shippingName,
@@ -30,7 +29,6 @@ export default async function handler(req, res) {
     } = req.body;
     if (!bookId) return res.status(400).json({ error: 'ID buku tidak ditemukan.' });
 
-    // 2. Ambil data buku dari Supabase
     const bookRes = await fetch(`${supabaseUrl}/rest/v1/books?id=eq.${bookId}&select=*`, {
       headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
     });
@@ -39,12 +37,12 @@ export default async function handler(req, res) {
     if (!book) return res.status(404).json({ error: 'Buku tidak ditemukan.' });
 
     const isPhysical = book.product_type === 'physical';
+    const isCashOffice = isPhysical && paymentMethod === 'CASH_KANTOR';
     const qty = isPhysical ? Math.max(1, parseInt(quantity, 10) || 1) : 1;
 
     let shippingCost = 0;
     let finalShippingMethod = null;
 
-    // [DIUBAH] Pakai ongkir otomatis dari Biteship jika bukan Ambil di Kantor
     if (isPhysical) {
       if ((book.stock || 0) < qty) {
         return res.status(400).json({ error: `Stok buku tidak mencukupi (tersisa ${book.stock || 0}).` });
@@ -56,16 +54,17 @@ export default async function handler(req, res) {
       finalShippingMethod = shippingMethod || 'AMBIL_DI_KANTOR';
       if (finalShippingMethod !== 'AMBIL_DI_KANTOR') {
         if (!shippingAddress) {
-          return res.status(400).json({ error: 'Alamat pengiriman wajib diisi untuk pengiriman kurir.' });
+          return res.status(400).json({ error: 'Alamat / tujuan pengiriman wajib diisi.' });
         }
-        shippingCost = Math.max(0, Number(clientShippingCost || 0));
+        // Jika Bus/Travel, ongkir di web Rp 0 (manual). Jika Kurir Biteship, pakai tarifnya.
+        shippingCost = finalShippingMethod.includes('Bus / Travel') ? 0 : Math.max(0, Number(clientShippingCost || 0));
       }
     }
 
     const grossAmount = (Number(book.price) * qty) + shippingCost;
-    const orderId = `${isPhysical ? 'FSK' : 'EBK'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const prefix = isCashOffice ? 'CASH' : (isPhysical ? 'FSK' : 'EBK');
+    const orderId = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // 3. Simpan transaksi PENDING ke Supabase
     const txPayload = {
       order_id: orderId,
       user_id: user.id,
@@ -74,7 +73,7 @@ export default async function handler(req, res) {
       status: 'PENDING',
       product_type: isPhysical ? 'physical' : 'digital',
       quantity: qty,
-      shipping_method: finalShippingMethod,
+      shipping_method: isCashOffice ? `${finalShippingMethod} (Bayar Tunai)` : finalShippingMethod,
       shipping_cost: shippingCost,
       shipping_name: isPhysical ? shippingName.trim() : null,
       shipping_phone: isPhysical ? shippingPhone.trim() : null,
@@ -97,7 +96,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Gagal mencatat transaksi: ' + (errTx.message || '') });
     }
 
-    // 4. Buat tagihan ke Midtrans Snap
+    // Jika Bayar Tunai di Kantor, lewati Midtrans dan langsung kembalikan sukses
+    if (isCashOffice) {
+      return res.status(200).json({ isManualCash: true, orderId, amount: grossAmount });
+    }
+
+    // Jika Bayar Online, buat tagihan ke Midtrans Snap
     const midtransUrl = isProduction
       ? 'https://app.midtrans.com/snap/v1/transactions'
       : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
