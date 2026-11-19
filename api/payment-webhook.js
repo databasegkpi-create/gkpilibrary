@@ -1,5 +1,25 @@
 import crypto from 'crypto';
 
+
+async function sendAdminWA(message) {
+  const token = process.env.FONNTE_TOKEN;
+  const target = process.env.ADMIN_WA_NUMBER;
+  if (!token || !target) return;
+
+  try {
+    await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ target, message })
+    });
+  } catch (err) {
+    console.error('Gagal kirim WA Fonnte:', err.message);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -30,6 +50,19 @@ export default async function handler(req, res) {
       transaction_status === 'settlement';
 
     if (!isPaid) {
+      // Kirim notifikasi WA ke Admin saat pembayaran Midtrans LUNAS
+    const tipeProduk = tx.product_type === 'physical' ? 'Buku Fisik' : 'E-Book Digital';
+    const waMsg = [
+      `*PESANAN LUNAS (PAID) — GKPI BOOK STORE*`,
+      `Order ID: ${order_id}`,
+      `Tipe: ${tipeProduk} (${tx.quantity || 1}x)`,
+      `Total Bayar: Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}`,
+      tx.product_type === 'physical' ? `Penerima: ${tx.shipping_name || '-'} (${tx.shipping_phone || '-'})` : '',
+      tx.product_type === 'physical' ? `Pengiriman: ${tx.shipping_method || '-'}` : '',
+      tx.product_type === 'physical' ? `Alamat: ${tx.shipping_address || '-'}` : ''
+    ].filter(Boolean).join('\n');
+
+    await sendAdminWA(waMsg);
       return res.status(200).json({ status: 'ignored', transaction_status });
     }
 
