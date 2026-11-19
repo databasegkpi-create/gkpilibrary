@@ -1,9 +1,8 @@
 import crypto from 'crypto';
 
 
-async function sendAdminWA(message) {
+async function sendWA(target, message) {
   const token = process.env.FONNTE_TOKEN;
-  const target = process.env.ADMIN_WA_NUMBER;
   if (!token || !target) return;
 
   try {
@@ -62,8 +61,23 @@ export default async function handler(req, res) {
       tx.product_type === 'physical' ? `Alamat: ${tx.shipping_address || '-'}` : ''
     ].filter(Boolean).join('\n');
 
-    await sendAdminWA(waMsg);
-      return res.status(200).json({ status: 'ignored', transaction_status });
+   // Kirim WA ke Admin
+    await sendWA(process.env.ADMIN_WA_NUMBER, waMsg);
+
+    // Kirim WA ke Pembeli (khusus buku fisik yang memiliki nomor WA)
+    if (tx.shipping_phone) {
+      const buyerMsg = [
+        `Halo *${tx.shipping_name || 'Pelanggan'}*,`,
+        `Pembayaran Anda di *GKPI Book Store* telah kami terima (*LUNAS*).`,
+        ``,
+        `Order ID: *${order_id}*`,
+        `Total: *Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}*`,
+        `Pengiriman: ${tx.shipping_method || '-'}`,
+        ``,
+        `Pesanan Anda segera kami kemas. Nomor resi akan kami kirimkan otomatis melalui WhatsApp ini. Terima kasih!`
+      ].join('\n');
+
+      await sendWA(tx.shipping_phone, buyerMsg);
     }
 
     // 2. Cek transaksi di Supabase
