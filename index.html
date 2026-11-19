@@ -513,8 +513,11 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       setSessionUI(session);
 
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
+   supabaseClient.auth.onAuthStateChange((event, session) => {
         setSessionUI(session);
+        if (event === 'PASSWORD_RECOVERY') {
+          openResetPasswordPrompt();
+        }
         Promise.all([loadUserLibrary(), loadUserPhysicalOrders()]).then(() => {
           renderView();
           renderQuickLibrary();
@@ -1220,6 +1223,70 @@
     async function logout() {
       await supabaseClient.auth.signOut();
       navSelect('store', 'all');
+    }
+
+    async function handleForgotPassword() {
+      const currentEmail = document.getElementById('auth-email').value.trim();
+      const { value: email } = await Swal.fire({
+        title: 'Reset Kata Sandi',
+        text: 'Masukkan email akun Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.',
+        input: 'email',
+        inputValue: currentEmail,
+        inputPlaceholder: 'nama@email.com',
+        showCancelButton: true,
+        confirmButtonColor: '#0f172a',
+        confirmButtonText: 'Kirim Tautan',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!email) return;
+
+      Swal.fire({ title: 'Mengirim Email...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+      });
+      Swal.close();
+
+      if (error) {
+        Swal.fire('Gagal', error.message, 'error');
+      } else {
+        closeAuthModal();
+        Swal.fire(
+          'Tautan Terkirim!',
+          `Silakan periksa kotak masuk (atau folder Spam) pada email ${email} untuk mengatur kata sandi baru.`,
+          'success'
+        );
+      }
+    }
+
+    async function openResetPasswordPrompt() {
+      const { value: newPassword } = await Swal.fire({
+        title: 'Buat Kata Sandi Baru',
+        text: 'Masukkan kata sandi baru untuk akun Anda (minimal 6 karakter).',
+        input: 'password',
+        inputAttributes: { minlength: 6, autocapitalize: 'off', autocorrect: 'off' },
+        inputPlaceholder: 'Kata sandi baru...',
+        allowOutsideClick: false,
+        showCancelButton: true,
+        confirmButtonColor: '#0f172a',
+        confirmButtonText: 'Simpan Kata Sandi',
+        cancelButtonText: 'Batal',
+        inputValidator: (val) => {
+          if (!val || val.length < 6) return 'Kata sandi minimal 6 karakter!';
+        }
+      });
+
+      if (!newPassword) return;
+
+      Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+      Swal.close();
+
+      if (error) {
+        Swal.fire('Gagal', error.message, 'error');
+      } else {
+        Swal.fire('Berhasil!', 'Kata sandi Anda telah diperbarui dan Anda sudah masuk ke akun.', 'success');
+      }
     }
 
     // READER E-BOOK
