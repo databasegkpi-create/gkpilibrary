@@ -8,202 +8,261 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-SwVTge5CRz15U5GM"></script>
   <style>
-    .no-select {
-      user-select: none;
-      -webkit-user-select: none;
-    }
+    .no-select { user-select: none; -webkit-user-select: none; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
   </style>
 </head>
-<body class="bg-white text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-slate-100/80 text-slate-800 min-h-screen antialiased pb-20 lg:pb-6 lg:p-5">
 
-  <!-- NAVBAR -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200/80">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-      <button onclick="switchTab('store')" class="flex items-center gap-2.5 text-left shrink-0">
-        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
+  <!-- MAIN APP CONTAINER -->
+  <div class="max-w-[1380px] mx-auto bg-white lg:rounded-3xl lg:shadow-sm lg:border border-slate-200/80 min-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden">
+
+    <!-- TOP HEADER -->
+    <header class="h-16 px-4 sm:px-6 border-b border-slate-100 flex items-center justify-between gap-4 sticky top-0 bg-white/95 backdrop-blur z-30">
+      <!-- Brand -->
+      <button onclick="goHome()" class="flex items-center gap-2.5 text-left shrink-0 lg:w-52">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
           <i class="fa-solid fa-book-open text-sm"></i>
         </div>
         <div>
-          <span class="font-bold text-slate-900 tracking-tight block leading-none">GKPI Book Store</span>
-          <span class="text-[11px] text-slate-500 font-medium">Biro Infokom GKPI</span>
+          <span class="font-extrabold text-slate-900 tracking-tight block leading-none text-sm sm:text-base">GKPI Book</span>
+          <span class="text-[11px] text-slate-400 font-medium">Biro Infokom</span>
         </div>
       </button>
 
-      <!-- Search Bar (Desktop) -->
-      <div class="hidden md:flex flex-1 max-w-md relative">
-        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-        <input type="text" id="search-desktop" oninput="handleSearch(this.value)"
+      <!-- Search Bar -->
+      <div class="flex-1 max-w-md relative">
+        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input type="text" id="search-input" oninput="handleSearch(this.value)"
           placeholder="Cari judul buku atau penulis..."
-          class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition">
+          class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-100/80 border border-transparent rounded-xl focus:bg-white focus:border-slate-300 focus:outline-none transition">
       </div>
 
-      <!-- Menu Navigasi & Auth -->
-      <nav class="flex items-center gap-1.5 sm:gap-2">
-        <button id="nav-store" onclick="switchTab('store')"
-          class="px-3 py-2 text-sm font-semibold rounded-lg text-blue-600 bg-blue-50 transition">
-          <i class="fa-solid fa-store sm:mr-1.5"></i><span class="hidden sm:inline">Toko</span>
-        </button>
-        <button id="nav-library" onclick="switchTab('library')"
-          class="px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">
-          <i class="fa-solid fa-bookmark sm:mr-1.5"></i><span class="hidden sm:inline">Koleksi & Pesanan</span>
-        </button>
-
+      <!-- Right Auth / Profile -->
+      <div class="flex items-center gap-2 shrink-0">
         <button id="btn-login-nav" onclick="openAuthModal()"
-          class="ml-1 px-4 py-2 text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm transition">
+          class="px-4 py-2 text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">
           Masuk
         </button>
 
-        <div id="user-menu-nav" class="hidden items-center gap-2 ml-1 pl-2 border-l border-slate-200">
-          <span id="user-email-badge" class="hidden lg:inline text-xs font-medium text-slate-500 max-w-[140px] truncate"></span>
+        <div id="user-menu-nav" class="hidden items-center gap-2.5">
+          <div class="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+            <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center" id="user-avatar-initial">U</div>
+            <span id="user-email-badge" class="text-xs font-medium text-slate-600 max-w-[130px] truncate"></span>
+          </div>
           <button onclick="logout()" title="Keluar"
-            class="px-3 py-2 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition">
-            <i class="fa-solid fa-right-from-bracket sm:mr-1"></i><span class="hidden sm:inline">Keluar</span>
+            class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition">
+            <i class="fa-solid fa-right-from-bracket text-sm"></i>
           </button>
         </div>
-      </nav>
-    </div>
-
-    <!-- Search Bar (Mobile) -->
-    <div class="md:hidden px-4 pb-3">
-      <div class="relative">
-        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-        <input type="text" id="search-mobile" oninput="handleSearch(this.value)"
-          placeholder="Cari judul buku atau penulis..."
-          class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition">
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- KONTEN UTAMA -->
-  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+    <!-- 3-COLUMN BODY -->
+    <div class="flex-1 flex flex-col lg:flex-row">
 
-    <!-- HERO SECTION -->
-    <section id="hero-section" class="mb-10 rounded-2xl bg-slate-50 border border-slate-200/80 p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-      <div class="max-w-xl">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 mb-4">
-          <i class="fa-solid fa-bolt"></i> E-Book Instan & Buku Fisik Resmi
-        </span>
-        <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-3">
-          Publikasi Resmi GKPI dalam Genggaman Anda
-        </h1>
-        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
-          Pilih E-Book untuk dibaca langsung di browser atau pesan Buku Fisik yang dikirim langsung dari kantor kami. Pembayaran otomatis via QRIS & Virtual Account.
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-3 text-xs font-medium text-slate-600 shrink-0">
-        <div class="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-xs flex items-center gap-2.5">
-          <i class="fa-solid fa-shield-halved text-blue-600 text-base"></i>
-          <div>
-            <p class="font-bold text-slate-900">Pembayaran Aman</p>
-            <p class="text-slate-500">Terverifikasi Midtrans</p>
+      <!-- 1. LEFT SIDEBAR (DESKTOP) -->
+      <aside class="hidden lg:flex flex-col justify-between w-56 shrink-0 border-r border-slate-100 p-4 bg-white">
+        <nav class="space-y-1">
+          <button onclick="navSelect('store', 'all')" id="side-home"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-900 transition">
+            <i class="fa-solid fa-house w-4 text-center"></i><span>Beranda</span>
+          </button>
+          <button onclick="navSelect('store', 'digital')" id="side-digital"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-tablet-screen-button w-4 text-center"></i><span>E-Book</span>
+          </button>
+          <button onclick="navSelect('store', 'physical')" id="side-physical"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-book w-4 text-center"></i><span>Buku Fisik</span>
+          </button>
+
+          <div class="my-3 border-t border-slate-100"></div>
+
+          <button onclick="navSelect('library', 'ebooks')" id="side-ebooks"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-bookmark w-4 text-center"></i><span>Koleksi Saya</span>
+          </button>
+          <button onclick="navSelect('library', 'orders')" id="side-orders"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-truck-fast w-4 text-center"></i><span>Pesanan Fisik</span>
+          </button>
+        </nav>
+
+        <!-- Bottom Info -->
+        <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400 px-2 space-y-1">
+          <p class="font-semibold text-slate-600">GKPI Book Store</p>
+          <p>&copy; 2026 Biro Infokom</p>
+        </div>
+      </aside>
+
+      <!-- 2. CENTER MAIN CONTENT -->
+      <main class="flex-1 min-w-0 p-4 sm:p-6 bg-slate-50/40">
+
+        <!-- Filter Pills & Sort Bar (Store Mode) -->
+        <div id="store-controls" class="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div class="flex items-center gap-2 overflow-x-auto pb-1">
+            <button onclick="setTypeFilter('all')" id="filter-all"
+              class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition whitespace-nowrap">
+              Semua
+            </button>
+            <button onclick="setTypeFilter('digital')" id="filter-digital"
+              class="px-4 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">
+              E-Book
+            </button>
+            <button onclick="setTypeFilter('physical')" id="filter-physical"
+              class="px-4 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">
+              Buku Fisik
+            </button>
           </div>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-xs flex items-center gap-2.5">
-          <i class="fa-solid fa-box-open text-amber-600 text-base"></i>
-          <div>
-            <p class="font-bold text-slate-900">Digital & Cetak</p>
-            <p class="text-slate-500">Baca Online / Kirim Kurir</p>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- HEADER BAGIAN, FILTER TIPE, & SORT -->
-    <div id="store-controls" class="space-y-4 mb-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 id="section-title" class="text-xl font-bold text-slate-900">Katalog Buku Pilihan</h2>
-          <p id="section-subtitle" class="text-sm text-slate-500">Temukan e-book dan buku cetak terbaru.</p>
-        </div>
-        <div id="sort-wrapper" class="flex items-center gap-2">
-          <label for="sort-select" class="text-xs font-medium text-slate-500">Urutkan:</label>
           <select id="sort-select" onchange="renderBooks()"
-            class="text-sm bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+            class="text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-600 focus:outline-none">
             <option value="newest">Terbaru</option>
             <option value="price-asc">Harga Terendah</option>
             <option value="price-desc">Harga Tertinggi</option>
           </select>
         </div>
-      </div>
 
-      <!-- Filter Pills (Tab Toko) -->
-      <div id="type-filter-bar" class="flex items-center gap-2 overflow-x-auto pb-1">
-        <button onclick="setTypeFilter('all')" id="filter-all"
-          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition whitespace-nowrap">
-          Semua Produk
-        </button>
-        <button onclick="setTypeFilter('digital')" id="filter-digital"
-          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap">
-          <i class="fa-solid fa-tablet-screen-button mr-1"></i>E-Book
-        </button>
-        <button onclick="setTypeFilter('physical')" id="filter-physical"
-          class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap">
-          <i class="fa-solid fa-book mr-1"></i>Buku Fisik
-        </button>
-      </div>
+        <!-- Library Subtabs (Library Mode) -->
+        <div id="library-controls" class="hidden flex items-center justify-between gap-3 mb-6">
+          <div>
+            <h2 id="library-heading" class="text-lg font-bold text-slate-900">Koleksi E-Book Saya</h2>
+            <p class="text-xs text-slate-500">Akses e-book terproteksi atau pantau resi buku fisik Anda.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchLibrarySubtab('ebooks')" id="subtab-ebooks"
+              class="px-3.5 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition">E-Book</button>
+            <button onclick="switchLibrarySubtab('orders')" id="subtab-orders"
+              class="px-3.5 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition">Pesanan</button>
+          </div>
+        </div>
 
-      <!-- Sub-Tab (Tab Koleksi & Pesanan) -->
-      <div id="library-subtabs" class="hidden flex items-center gap-2 border-b border-slate-200 pb-3">
-        <button onclick="switchLibrarySubtab('ebooks')" id="subtab-ebooks"
-          class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition">
-          <i class="fa-solid fa-book-open-reader mr-1.5"></i>Koleksi E-Book
-        </button>
-        <button onclick="switchLibrarySubtab('orders')" id="subtab-orders"
-          class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">
-          <i class="fa-solid fa-truck-fast mr-1.5"></i>Pesanan Buku Fisik
-        </button>
-      </div>
+        <!-- Loading Skeleton -->
+        <div id="loading-state" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <div class="animate-pulse space-y-2.5">
+            <div class="aspect-[3/4] bg-slate-200/70 rounded-xl"></div>
+            <div class="h-3.5 bg-slate-200/70 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-200/70 rounded w-1/2"></div>
+          </div>
+          <div class="animate-pulse space-y-2.5">
+            <div class="aspect-[3/4] bg-slate-200/70 rounded-xl"></div>
+            <div class="h-3.5 bg-slate-200/70 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-200/70 rounded w-1/2"></div>
+          </div>
+          <div class="animate-pulse space-y-2.5 hidden sm:block">
+            <div class="aspect-[3/4] bg-slate-200/70 rounded-xl"></div>
+            <div class="h-3.5 bg-slate-200/70 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-200/70 rounded w-1/2"></div>
+          </div>
+          <div class="animate-pulse space-y-2.5 hidden md:block">
+            <div class="aspect-[3/4] bg-slate-200/70 rounded-xl"></div>
+            <div class="h-3.5 bg-slate-200/70 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-200/70 rounded w-1/2"></div>
+          </div>
+        </div>
+
+        <!-- Book Grid -->
+        <div id="books-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-5 gap-y-7"></div>
+
+        <!-- Physical Orders List -->
+        <div id="physical-orders-list" class="hidden space-y-3"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-16 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+          <div class="w-11 h-11 rounded-full bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3">
+            <i class="fa-solid fa-book"></i>
+          </div>
+          <h3 id="empty-title" class="text-sm font-bold text-slate-900 mb-1">Belum ada produk</h3>
+          <p id="empty-desc" class="text-xs text-slate-500 mb-4">Coba kata kunci atau filter lain.</p>
+          <button id="empty-action-btn" onclick="navSelect('store', 'all')" class="hidden px-4 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">
+            Jelajahi Katalog
+          </button>
+        </div>
+
+        <!-- Quick Access Strip (Seperti bagian bawah referensi) -->
+        <section id="quick-library-strip" class="hidden mt-8 pt-6 border-t border-slate-200/80">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-slate-900">Lanjutkan Membaca</h3>
+            <button onclick="navSelect('library', 'ebooks')" class="text-xs font-semibold text-blue-600 hover:underline">Lihat Semua</button>
+          </div>
+          <div id="quick-library-list" class="space-y-2.5"></div>
+        </section>
+
+      </main>
+
+      <!-- 3. RIGHT SIDEBAR (PENULIS POPULER & INFO LAYANAN) -->
+      <aside class="w-full lg:w-72 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 p-5 bg-white space-y-7">
+
+        <!-- Penulis / Penerbit Populer -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 mb-3.5">Penulis & Penerbit</h3>
+          <div id="authors-list" class="space-y-3">
+            <p class="text-xs text-slate-400">Memuat daftar...</p>
+          </div>
+        </div>
+
+        <!-- Info Layanan Toko -->
+        <div class="pt-5 border-t border-slate-100">
+          <h3 class="text-sm font-bold text-slate-900 mb-3.5">Layanan GKPI Store</h3>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-bolt text-sm"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">E-Book Akses Instan</p>
+                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Langsung baca di browser begitu pembayaran lunas.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-truck-fast text-sm"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">Kurir & Bus / Travel</p>
+                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Cek ongkir JNE/SiCepat otomatis, Bus/Travel, atau ambil di kantor.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-shield-halved text-sm"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">Online & Tunai Kantor</p>
+                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Dukung QRIS, Virtual Account Midtrans, dan Bayar Tunai.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
     </div>
+  </div>
 
-    <!-- LOADING SKELETON -->
-    <div id="loading-state" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-      <div class="animate-pulse rounded-xl border border-slate-200 p-3 space-y-3">
-        <div class="aspect-[3/4] bg-slate-100 rounded-lg"></div>
-        <div class="h-4 bg-slate-100 rounded w-3/4"></div>
-        <div class="h-3 bg-slate-100 rounded w-1/2"></div>
-      </div>
-      <div class="animate-pulse rounded-xl border border-slate-200 p-3 space-y-3">
-        <div class="aspect-[3/4] bg-slate-100 rounded-lg"></div>
-        <div class="h-4 bg-slate-100 rounded w-3/4"></div>
-        <div class="h-3 bg-slate-100 rounded w-1/2"></div>
-      </div>
-    </div>
-
-    <!-- GRID BUKU -->
-    <div id="books-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6"></div>
-
-    <!-- DAFTAR PESANAN BUKU FISIK (USER) -->
-    <div id="physical-orders-list" class="hidden space-y-4"></div>
-
-    <!-- EMPTY STATE -->
-    <div id="empty-state" class="hidden text-center py-16 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-      <div class="w-12 h-12 rounded-full bg-white border border-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3 text-lg">
-        <i class="fa-solid fa-book"></i>
-      </div>
-      <h3 id="empty-title" class="text-base font-bold text-slate-900 mb-1">Belum ada buku ditemukan</h3>
-      <p id="empty-desc" class="text-sm text-slate-500 mb-4">Coba kata kunci lain atau jelajahi katalog kami.</p>
-      <button id="empty-action-btn" onclick="switchTab('store')" class="hidden px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-        Jelajahi Toko Buku
-      </button>
-    </div>
-  </main>
-
-  <!-- FOOTER -->
-  <footer class="border-t border-slate-200 bg-white mt-12">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-      <div class="flex items-center gap-2">
-        <i class="fa-solid fa-book-open text-blue-600"></i>
-        <span class="font-semibold text-slate-700">GKPI Book Store</span>
-        <span>&copy; 2026 Biro Infokom GKPI.</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-slate-400"></i> Pembayaran Terenkripsi Midtrans</span>
-      </div>
-    </div>
-  </footer>
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-around z-30">
+    <button onclick="navSelect('store', 'all')" class="flex flex-col items-center gap-0.5 text-slate-700 text-[11px] font-medium px-3">
+      <i class="fa-solid fa-house text-base"></i><span>Beranda</span>
+    </button>
+    <button onclick="navSelect('store', 'digital')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
+      <i class="fa-solid fa-tablet-screen-button text-base"></i><span>E-Book</span>
+    </button>
+    <button onclick="navSelect('store', 'physical')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
+      <i class="fa-solid fa-book text-base"></i><span>Fisik</span>
+    </button>
+    <button onclick="navSelect('library', 'ebooks')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
+      <i class="fa-solid fa-bookmark text-base"></i><span>Koleksi</span>
+    </button>
+    <button onclick="navSelect('library', 'orders')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
+      <i class="fa-solid fa-truck-fast text-base"></i><span>Pesanan</span>
+    </button>
+  </nav>
 
   <!-- MODAL DETAIL BUKU -->
   <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -245,10 +304,9 @@
         </button>
       </div>
 
-     <form onsubmit="submitPhysicalOrder(event)" class="p-6 space-y-4">
+      <form onsubmit="submitPhysicalOrder(event)" class="p-6 space-y-4">
         <input type="hidden" id="co-book-id">
 
-        <!-- Ringkasan Buku -->
         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
           <img id="co-cover" src="" class="w-12 h-16 object-cover rounded-md border border-slate-200 bg-white">
           <div class="flex-1 min-w-0">
@@ -263,7 +321,6 @@
           </div>
         </div>
 
-     <!-- Opsi Pengiriman -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pengiriman *</label>
           <select id="co-shipping-mode" onchange="handleShippingModeChange()"
@@ -274,7 +331,6 @@
           </select>
         </div>
 
-        <!-- Opsi Pembayaran -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pembayaran *</label>
           <select id="co-payment-method"
@@ -284,7 +340,6 @@
           </select>
         </div>
 
- <!-- Area Pencarian Kecamatan & Pilih Kurir -->
         <div id="co-courier-section" class="space-y-3">
           <div class="relative">
             <label class="block text-xs font-semibold text-slate-600 mb-1">Kecamatan / Kota Tujuan *</label>
@@ -303,7 +358,6 @@
           <p id="co-rates-loading" class="hidden text-xs text-blue-600"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Menghitung ongkir...</p>
         </div>
 
-        <!-- Data Penerima -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Penerima *</label>
@@ -323,7 +377,6 @@
             class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"></textarea>
         </div>
 
-        <!-- Rincian Total -->
         <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-sm">
           <div class="flex justify-between text-slate-600">
             <span>Subtotal Buku</span>
@@ -340,8 +393,8 @@
         </div>
 
         <button type="submit" id="btn-pay-physical"
-          class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition">
-          <i class="fa-solid fa-credit-card mr-1.5"></i>Bayar Sekarang
+          class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl shadow-sm transition">
+          <i class="fa-solid fa-credit-card mr-1.5"></i>Proses Pesanan
         </button>
       </form>
     </div>
@@ -355,7 +408,7 @@
       </button>
 
       <div class="text-center mb-6">
-        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
           <i class="fa-solid fa-book-open"></i>
         </div>
         <h3 id="auth-title" class="text-xl font-bold text-slate-900">Masuk ke Akun</h3>
@@ -366,15 +419,15 @@
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
           <input type="email" id="auth-email" required placeholder="nama@email.com"
-            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Kata Sandi</label>
           <input type="password" id="auth-password" required minlength="6" placeholder="Minimal 6 karakter"
-            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+            class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
         </div>
         <button type="submit" id="auth-submit-btn"
-          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">
+          class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm transition">
           Masuk
         </button>
       </form>
@@ -414,13 +467,8 @@
     </div>
 
     <div class="relative flex-1 w-full bg-slate-900 overflow-hidden">
-      <!-- Iframe Google Drive Preview -->
       <iframe id="reader-iframe" src="" class="w-full h-full border-0" allow="autoplay"></iframe>
-
-      <!-- Perisai Pemblokir Tombol Pop-out / Download di Pojok Kanan Atas Google Drive -->
       <div class="absolute top-0 right-0 w-24 h-16 bg-transparent z-20" title="Akses Terproteksi"></div>
-
-      <!-- Watermark Email Pembeli -->
       <div id="reader-watermark" class="pointer-events-none select-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden opacity-15">
         <span id="reader-watermark-text" class="text-white text-xl sm:text-3xl font-extrabold -rotate-30 whitespace-nowrap tracking-widest"></span>
       </div>
@@ -428,15 +476,9 @@
   </div>
 
   <script>
-
-
-    
     const SUPABASE_URL = 'https://hhbghudcjnqzohksebox.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_b8BjVmh_WoFus_3QDpksNg_2ipxO4Gf';
-
-
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     let currentSession = null;
     let allBooks = [];
@@ -449,9 +491,9 @@
     let isRegisterMode = false;
     let activeCheckoutBook = null;
 
-    let pdfDoc = null;
-    let currentPage = 1;
-    let currentScale = 1.3;
+    let selectedArea = null;
+    let availableRates = [];
+    let areaSearchTimer = null;
 
     function formatRupiah(amount) {
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount || 0);
@@ -468,12 +510,17 @@
 
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         setSessionUI(session);
-        Promise.all([loadUserLibrary(), loadUserPhysicalOrders()]).then(renderView);
+        Promise.all([loadUserLibrary(), loadUserPhysicalOrders()]).then(() => {
+          renderView();
+          renderQuickLibrary();
+        });
       });
 
       await Promise.all([loadBooks(), loadUserLibrary(), loadUserPhysicalOrders()]);
       document.getElementById('loading-state').classList.add('hidden');
+      renderAuthorsSidebar();
       renderView();
+      renderQuickLibrary();
     }
 
     function setSessionUI(session) {
@@ -481,12 +528,14 @@
       const loginBtn = document.getElementById('btn-login-nav');
       const userMenu = document.getElementById('user-menu-nav');
       const emailBadge = document.getElementById('user-email-badge');
+      const avatar = document.getElementById('user-avatar-initial');
 
       if (session) {
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
         emailBadge.textContent = session.user.email;
+        avatar.textContent = (session.user.email || 'U')[0].toUpperCase();
       } else {
         loginBtn.classList.remove('hidden');
         userMenu.classList.add('hidden');
@@ -499,7 +548,7 @@
     async function loadBooks() {
       const { data, error } = await supabaseClient
         .from('books')
-        .select('id, title, author, price, cover_url, description, product_type, stock, created_at')
+        .select('id, title, author, price, cover_url, description, product_type, stock, weight_gram, created_at')
         .order('created_at', { ascending: false });
       if (!error && data) allBooks = data;
     }
@@ -524,69 +573,162 @@
       if (!error && data) userPhysicalOrders = data;
     }
 
-    function switchTab(tab) {
+    function goHome() {
+      document.getElementById('search-input').value = '';
+      searchQuery = '';
+      navSelect('store', 'all');
+    }
+
+    function navSelect(tab, sub) {
       if (tab === 'library' && !currentSession) return openAuthModal();
       activeTab = tab;
 
-      const navStore = document.getElementById('nav-store');
-      const navLibrary = document.getElementById('nav-library');
-      const hero = document.getElementById('hero-section');
-      const sortWrapper = document.getElementById('sort-wrapper');
-      const typeFilterBar = document.getElementById('type-filter-bar');
-      const librarySubtabs = document.getElementById('library-subtabs');
-
       if (tab === 'store') {
-        navStore.className = 'px-3 py-2 text-sm font-semibold rounded-lg text-blue-600 bg-blue-50 transition';
-        navLibrary.className = 'px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
-        hero.classList.remove('hidden');
-        sortWrapper.classList.remove('hidden');
-        typeFilterBar.classList.remove('hidden');
-        librarySubtabs.classList.add('hidden');
-        document.getElementById('section-title').textContent = 'Katalog Buku Pilihan';
-        document.getElementById('section-subtitle').textContent = 'Temukan e-book dan buku cetak terbaru.';
+        typeFilter = sub || 'all';
+        document.getElementById('store-controls').classList.remove('hidden');
+        document.getElementById('library-controls').classList.add('hidden');
+        updateFilterPills();
       } else {
-        navLibrary.className = 'px-3 py-2 text-sm font-semibold rounded-lg text-blue-600 bg-blue-50 transition';
-        navStore.className = 'px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
-        hero.classList.add('hidden');
-        sortWrapper.classList.add('hidden');
-        typeFilterBar.classList.add('hidden');
-        librarySubtabs.classList.remove('hidden');
-        document.getElementById('section-title').textContent = 'Koleksi & Pesanan Saya';
-        document.getElementById('section-subtitle').textContent = 'Baca e-book Anda atau pantau pengiriman buku fisik.';
+        librarySubtab = sub || 'ebooks';
+        document.getElementById('store-controls').classList.add('hidden');
+        document.getElementById('library-controls').classList.remove('hidden');
+        updateLibrarySubtabUI();
       }
+
+      updateSidebarActive(tab, sub);
       renderView();
+      renderQuickLibrary();
     }
 
-    function switchLibrarySubtab(subtab) {
-      librarySubtab = subtab;
-      const btnEbooks = document.getElementById('subtab-ebooks');
-      const btnOrders = document.getElementById('subtab-orders');
-      if (subtab === 'ebooks') {
-        btnEbooks.className = 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition';
-        btnOrders.className = 'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
-      } else {
-        btnOrders.className = 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-900 text-white transition';
-        btnEbooks.className = 'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition';
-      }
-      renderView();
+    function updateSidebarActive(tab, sub) {
+      const ids = ['side-home', 'side-digital', 'side-physical', 'side-ebooks', 'side-orders'];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition';
+      });
+      let activeId = 'side-home';
+      if (tab === 'store' && sub === 'digital') activeId = 'side-digital';
+      else if (tab === 'store' && sub === 'physical') activeId = 'side-physical';
+      else if (tab === 'library' && sub === 'ebooks') activeId = 'side-ebooks';
+      else if (tab === 'library' && sub === 'orders') activeId = 'side-orders';
+
+      const activeEl = document.getElementById(activeId);
+      if (activeEl) activeEl.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-900 transition';
     }
 
     function setTypeFilter(type) {
       typeFilter = type;
+      updateFilterPills();
+      updateSidebarActive('store', type);
+      renderView();
+    }
+
+    function updateFilterPills() {
       ['all', 'digital', 'physical'].forEach((t) => {
         const btn = document.getElementById(`filter-${t}`);
-        btn.className = t === type
+        btn.className = t === typeFilter
           ? 'px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition whitespace-nowrap'
-          : 'px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap';
+          : 'px-4 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap';
       });
+    }
+
+    function switchLibrarySubtab(subtab) {
+      librarySubtab = subtab;
+      updateLibrarySubtabUI();
+      updateSidebarActive('library', subtab);
       renderView();
+    }
+
+    function updateLibrarySubtabUI() {
+      const btnEbooks = document.getElementById('subtab-ebooks');
+      const btnOrders = document.getElementById('subtab-orders');
+      document.getElementById('library-heading').textContent =
+        librarySubtab === 'ebooks' ? 'Koleksi E-Book Saya' : 'Pesanan Buku Fisik';
+
+      if (librarySubtab === 'ebooks') {
+        btnEbooks.className = 'px-3.5 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition';
+        btnOrders.className = 'px-3.5 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition';
+      } else {
+        btnOrders.className = 'px-3.5 py-1.5 text-xs font-semibold rounded-full bg-slate-900 text-white transition';
+        btnEbooks.className = 'px-3.5 py-1.5 text-xs font-semibold rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition';
+      }
     }
 
     function handleSearch(val) {
       searchQuery = val.trim().toLowerCase();
-      document.getElementById('search-desktop').value = val;
-      document.getElementById('search-mobile').value = val;
       renderView();
+    }
+
+    function filterByAuthor(authorName) {
+      document.getElementById('search-input').value = authorName;
+      searchQuery = authorName.toLowerCase();
+      navSelect('store', 'all');
+    }
+
+    function renderAuthorsSidebar() {
+      const container = document.getElementById('authors-list');
+      const authorCounts = {};
+      allBooks.forEach((b) => {
+        const name = (b.author || 'Tim Penulis').trim();
+        authorCounts[name] = (authorCounts[name] || 0) + 1;
+      });
+      const sorted = Object.entries(authorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400">Belum ada penulis.</p>`;
+        return;
+      }
+
+      container.innerHTML = sorted.map(([name, count]) => `
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+              ${name[0].toUpperCase()}
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-slate-800 truncate">${name}</p>
+              <p class="text-[11px] text-slate-400">${count} Publikasi</p>
+            </div>
+          </div>
+          <button onclick="filterByAuthor('${name.replace(/'/g, "\\'")}')"
+            class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 rounded-lg transition shrink-0">
+            Lihat
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderQuickLibrary() {
+      const strip = document.getElementById('quick-library-strip');
+      const listEl = document.getElementById('quick-library-list');
+
+      if (activeTab !== 'store' || !currentSession || ownedBookIds.size === 0) {
+        strip.classList.add('hidden');
+        return;
+      }
+
+      const owned = allBooks.filter((b) => ownedBookIds.has(b.id) && (b.product_type || 'digital') === 'digital').slice(0, 3);
+      if (owned.length === 0) {
+        strip.classList.add('hidden');
+        return;
+      }
+
+      strip.classList.remove('hidden');
+      listEl.innerHTML = owned.map((b) => `
+        <div class="bg-white rounded-xl border border-slate-200/80 p-2.5 flex items-center justify-between gap-3 hover:shadow-xs transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${b.cover_url || 'https://placehold.co/60x80?text=Buku'}" class="w-9 h-12 object-cover rounded-md border border-slate-100 shrink-0">
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-slate-900 truncate">${b.title}</p>
+              <p class="text-[11px] text-slate-400 truncate">${b.author || 'Tim Penulis'}</p>
+            </div>
+          </div>
+          <button onclick="openReader('${b.id}')"
+            class="px-3.5 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shrink-0">
+            <i class="fa-solid fa-book-open-reader mr-1"></i>Baca
+          </button>
+        </div>
+      `).join('');
     }
 
     function renderView() {
@@ -634,7 +776,7 @@
           emptyAction.classList.remove('hidden');
         } else {
           document.getElementById('empty-title').textContent = 'Produk tidak ditemukan';
-          document.getElementById('empty-desc').textContent = 'Coba gunakan kata kunci atau filter lain.';
+          document.getElementById('empty-desc').textContent = 'Coba kata kunci atau filter lain.';
           emptyAction.classList.add('hidden');
         }
         return;
@@ -649,64 +791,33 @@
         const outOfStock = isPhysical && (book.stock || 0) <= 0;
         const cover = book.cover_url || 'https://placehold.co/300x400?text=Buku';
 
-        const topBadge = isOwned
-          ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow-sm"><i class="fa-solid fa-check mr-1"></i>Dimiliki</span>`
+        const badge = isOwned
+          ? `<span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600 text-white shadow-xs">Dimiliki</span>`
           : isPhysical
-            ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm"><i class="fa-solid fa-box mr-1"></i>Buku Fisik</span>`
-            : `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-tablet-screen-button mr-1"></i>E-Book</span>`;
-
-        let actionHtml = '';
-        if (isOwned) {
-          actionHtml = `
-            <button onclick="openReader('${book.id}')"
-              class="w-full py-2 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition">
-              <i class="fa-solid fa-book-open-reader mr-1.5"></i>Baca Sekarang
-            </button>`;
-        } else if (outOfStock) {
-          actionHtml = `
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <span class="font-extrabold text-slate-400 text-sm sm:text-base">${formatRupiah(book.price)}</span>
-              <span class="text-[11px] font-bold text-red-600">Stok Habis</span>
-            </div>
-            <button disabled class="w-full py-2 text-xs sm:text-sm font-semibold bg-slate-200 text-slate-500 rounded-xl cursor-not-allowed">
-              Stok Habis
-            </button>`;
-        } else if (isPhysical) {
-          actionHtml = `
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatRupiah(book.price)}</span>
-              <span class="text-[11px] font-medium text-slate-500">Stok: ${book.stock}</span>
-            </div>
-            <button onclick="openCheckoutModal('${book.id}')"
-              class="w-full py-2 text-xs sm:text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition">
-              <i class="fa-solid fa-bag-shopping mr-1.5"></i>Pesan Buku Fisik
-            </button>`;
-        } else {
-          actionHtml = `
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatRupiah(book.price)}</span>
-            </div>
-            <button onclick="buyEbook('${book.id}')"
-              class="w-full py-2 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
-              <i class="fa-solid fa-cart-shopping mr-1.5"></i>Beli E-Book
-            </button>`;
-        }
+            ? `<span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow-xs">Fisik</span>`
+            : `<span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-600 text-white shadow-xs">E-Book</span>`;
 
         return `
-          <article class="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
-            <div onclick="openDetailModal('${book.id}')" class="relative aspect-[3/4] bg-slate-100 overflow-hidden cursor-pointer">
+          <article class="group flex flex-col">
+            <div onclick="openDetailModal('${book.id}')" class="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 shadow-xs group-hover:shadow-md transition-all cursor-pointer mb-2.5 border border-slate-200/60">
               <img src="${cover}" alt="${book.title}" loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 ${outOfStock ? 'grayscale opacity-70' : ''}">
-              ${topBadge}
+                class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 ${outOfStock ? 'grayscale opacity-60' : ''}">
+              ${badge}
             </div>
-            <div class="p-4 flex-1 flex flex-col justify-between">
-              <div onclick="openDetailModal('${book.id}')" class="cursor-pointer">
-                <h3 class="font-bold text-slate-900 text-sm sm:text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition">
-                  ${book.title}
-                </h3>
-                <p class="text-xs text-slate-500 mt-1 truncate">${book.author || 'Tim Penulis'}</p>
-              </div>
-              <div class="mt-4 pt-3 border-t border-slate-100">${actionHtml}</div>
+            <h3 onclick="openDetailModal('${book.id}')" class="font-bold text-slate-900 text-xs sm:text-sm line-clamp-1 cursor-pointer group-hover:text-blue-600 transition">
+              ${book.title}
+            </h3>
+            <p class="text-[11px] text-slate-400 truncate mb-2">${book.author || 'Tim Penulis'}</p>
+            <div class="mt-auto flex items-center justify-between gap-2">
+              <span class="text-xs font-extrabold text-slate-900">${isOwned ? 'Lunas' : formatRupiah(book.price)}</span>
+              ${isOwned
+                ? `<button onclick="openReader('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">Baca</button>`
+                : outOfStock
+                  ? `<span class="text-[10px] font-bold text-red-500">Habis</span>`
+                  : isPhysical
+                    ? `<button onclick="openCheckoutModal('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">Pesan</button>`
+                    : `<button onclick="buyEbook('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Beli</button>`
+              }
             </div>
           </article>
         `;
@@ -722,7 +833,7 @@
         container.classList.add('hidden');
         empty.classList.remove('hidden');
         document.getElementById('empty-title').textContent = 'Belum ada pesanan buku fisik';
-        document.getElementById('empty-desc').textContent = 'Pesanan buku cetak Anda akan tampil di sini beserta nomor resinya.';
+        document.getElementById('empty-desc').textContent = 'Pesanan buku cetak Anda akan tampil di sini beserta resinya.';
         emptyAction.classList.remove('hidden');
         return;
       }
@@ -734,36 +845,31 @@
         const isPaid = tx.status === 'PAID';
         const shipStatus = tx.shipping_status || 'MENUNGGU_DIKEMAS';
         const cover = tx.books?.cover_url || 'https://placehold.co/80x100?text=Buku';
-        const methodLabel = tx.shipping_method === 'AMBIL_DI_KANTOR'
-          ? 'Ambil di Kantor'
-          : tx.shipping_method === 'KURIR_FLAT'
-            ? 'Kurir (Flat Rp 20rb)'
-            : 'Kurir (Bayar Ongkir di Tujuan)';
 
         return `
-          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row gap-4 justify-between">
-            <div class="flex gap-4">
-              <img src="${cover}" class="w-16 h-20 object-cover rounded-lg border border-slate-200 shrink-0 bg-slate-100">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row gap-4 justify-between">
+            <div class="flex gap-3.5">
+              <img src="${cover}" class="w-14 h-18 object-cover rounded-lg border border-slate-200 shrink-0 bg-slate-100">
               <div>
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                  <span class="font-mono text-xs font-bold text-slate-500">${tx.order_id}</span>
-                  <span class="px-2 py-0.5 text-[11px] font-bold rounded-full ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">
+                  <span class="font-mono text-[11px] font-bold text-slate-500">${tx.order_id}</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">
                     ${isPaid ? 'LUNAS' : tx.status}
                   </span>
                 </div>
-                <h4 class="font-bold text-slate-900">${tx.books?.title || 'Buku Fisik'} <span class="text-blue-600">(${tx.quantity || 1}x)</span></h4>
-                <p class="text-xs text-slate-500 mt-0.5">${formatDate(tx.created_at)} &bull; ${methodLabel}</p>
+                <h4 class="font-bold text-sm text-slate-900">${tx.books?.title || 'Buku Fisik'} <span class="text-blue-600">(${tx.quantity || 1}x)</span></h4>
+                <p class="text-xs text-slate-500 mt-0.5">${formatDate(tx.created_at)} &bull; ${tx.shipping_method || '-'}</p>
                 <p class="text-xs text-slate-600 mt-1">Penerima: <b>${tx.shipping_name || '-'}</b> (${tx.shipping_phone || '-'})</p>
               </div>
             </div>
             <div class="sm:text-right flex flex-col justify-between border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
               <div>
-                <span class="text-xs text-slate-400 block">Total Bayar</span>
-                <span class="font-extrabold text-slate-900 text-base">${formatRupiah(tx.amount)}</span>
+                <span class="text-[11px] text-slate-400 block">Total</span>
+                <span class="font-extrabold text-slate-900 text-sm">${formatRupiah(tx.amount)}</span>
               </div>
               ${isPaid ? `
                 <div class="mt-2">
-                  <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                  <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
                     <i class="fa-solid fa-truck mr-1"></i>${shipStatus.replace(/_/g, ' ')}
                   </span>
                   ${tx.tracking_number ? `<p class="text-xs font-mono text-slate-700 mt-1">Resi: <b>${tx.tracking_number}</b></p>` : ''}
@@ -807,7 +913,7 @@
         actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-slate-200 text-slate-500 rounded-xl cursor-not-allowed';
         actionBtn.innerHTML = 'Stok Habis';
       } else if (isPhysical) {
-        actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition';
+        actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm transition';
         actionBtn.innerHTML = '<i class="fa-solid fa-bag-shopping mr-1.5"></i>Pesan Buku Fisik';
         actionBtn.onclick = () => { closeDetailModal(); openCheckoutModal(book.id); };
       } else {
@@ -819,14 +925,9 @@
       document.getElementById('detail-modal').classList.remove('hidden');
     }
 
-    function closeDetailModal() {
-      document.getElementById('detail-modal').classList.add('hidden');
-    }
+    function closeDetailModal() { document.getElementById('detail-modal').classList.add('hidden'); }
 
-   let selectedArea = null;
-    let availableRates = [];
-    let areaSearchTimer = null;
-
+    // CHECKOUT FISIK
     function openCheckoutModal(bookId) {
       if (!currentSession) return openAuthModal();
       const book = allBooks.find((b) => b.id === bookId);
@@ -850,6 +951,7 @@
       document.getElementById('co-area-results').classList.add('hidden');
       document.getElementById('co-rates-wrapper').classList.add('hidden');
       document.getElementById('co-shipping-mode').value = 'KURIR';
+      document.getElementById('co-payment-method').value = 'MIDTRANS';
       handleShippingModeChange();
       document.getElementById('checkout-modal').classList.remove('hidden');
     }
@@ -859,7 +961,7 @@
       activeCheckoutBook = null;
     }
 
-  function handleShippingModeChange() {
+    function handleShippingModeChange() {
       const mode = document.getElementById('co-shipping-mode').value;
       const courierSec = document.getElementById('co-courier-section');
       const addrWrap = document.getElementById('co-address-wrapper');
@@ -873,7 +975,7 @@
         courierSec.classList.add('hidden');
         addrWrap.classList.remove('hidden');
         addrInput.required = true;
-        addrInput.placeholder = 'Tulis kota tujuan, alamat, & nama PO Bus/Travel (misal: Medan - PO Intra / Paradep)';
+        addrInput.placeholder = 'Tulis kota tujuan, alamat, & nama PO Bus/Travel (misal: Medan - PO Intra)';
       } else {
         courierSec.classList.remove('hidden');
         addrWrap.classList.remove('hidden');
@@ -891,31 +993,22 @@
     function searchDestinationArea(query) {
       clearTimeout(areaSearchTimer);
       const box = document.getElementById('co-area-results');
-      if (query.trim().length < 3) {
-        box.classList.add('hidden');
-        return;
-      }
+      if (query.trim().length < 3) { box.classList.add('hidden'); return; }
 
       areaSearchTimer = setTimeout(async () => {
         try {
           const res = await fetch(`/api/shipping?q=${encodeURIComponent(query.trim())}`);
           const data = await res.json();
           const areas = data.areas || [];
-
-          if (areas.length === 0) {
-            box.innerHTML = `<div class="p-3 text-slate-400">Wilayah tidak ditemukan.</div>`;
-          } else {
-            box.innerHTML = areas.map((a) => `
-              <button type="button" onclick='selectArea(${JSON.stringify({ id: a.id, name: a.name })})'
-                class="w-full text-left px-3 py-2.5 hover:bg-blue-50 text-slate-700 transition">
-                ${a.name}
-              </button>
-            `).join('');
-          }
+          box.innerHTML = areas.length === 0
+            ? `<div class="p-3 text-slate-400">Wilayah tidak ditemukan.</div>`
+            : areas.map((a) => `
+                <button type="button" onclick='selectArea(${JSON.stringify({ id: a.id, name: a.name })})'
+                  class="w-full text-left px-3 py-2.5 hover:bg-blue-50 text-slate-700 transition">
+                  ${a.name}
+                </button>`).join('');
           box.classList.remove('hidden');
-        } catch (err) {
-          box.classList.add('hidden');
-        }
+        } catch (err) { box.classList.add('hidden'); }
       }, 400);
     }
 
@@ -951,13 +1044,9 @@
         if (!res.ok) throw new Error(data.error || 'Gagal mengambil tarif ongkir.');
 
         availableRates = data.pricing || [];
-        if (availableRates.length === 0) {
-          select.innerHTML = `<option value="">Kurir tidak tersedia untuk wilayah ini</option>`;
-        } else {
-          select.innerHTML = availableRates.map((r, idx) => `
-            <option value="${idx}">${r.courier_name} - ${r.courier_service_name} (${r.duration}) — ${formatRupiah(r.price)}</option>
-          `).join('');
-        }
+        select.innerHTML = availableRates.length === 0
+          ? `<option value="">Kurir tidak tersedia untuk wilayah ini</option>`
+          : availableRates.map((r, idx) => `<option value="${idx}">${r.courier_name} - ${r.courier_service_name} (${r.duration}) — ${formatRupiah(r.price)}</option>`).join('');
         wrapper.classList.remove('hidden');
         recalcCheckoutTotal();
       } catch (err) {
@@ -967,31 +1056,24 @@
       }
     }
 
-   function recalcCheckoutTotal() {
+    function recalcCheckoutTotal() {
       if (!activeCheckoutBook) return;
       const qtyInput = document.getElementById('co-qty');
       let qty = parseInt(qtyInput.value, 10) || 1;
       if (qty < 1) qty = 1;
-      if (qty > activeCheckoutBook.stock) {
-        qty = activeCheckoutBook.stock;
-        qtyInput.value = qty;
-      }
+      if (qty > activeCheckoutBook.stock) { qty = activeCheckoutBook.stock; qtyInput.value = qty; }
 
       const mode = document.getElementById('co-shipping-mode').value;
       let shippingCost = 0;
-
       if (mode === 'KURIR' && availableRates.length > 0) {
         const idx = document.getElementById('co-courier-select').value;
         if (availableRates[idx]) shippingCost = Number(availableRates[idx].price || 0);
       }
 
       const subtotal = Number(activeCheckoutBook.price) * qty;
-      const total = subtotal + shippingCost;
-
       document.getElementById('co-subtotal').textContent = formatRupiah(subtotal);
-      document.getElementById('co-shipping-cost').textContent =
-        mode === 'BUS_TRAVEL' ? 'Manual (Bus/Travel)' : formatRupiah(shippingCost);
-      document.getElementById('co-total').textContent = formatRupiah(total);
+      document.getElementById('co-shipping-cost').textContent = mode === 'BUS_TRAVEL' ? 'Manual (Bus/Travel)' : formatRupiah(shippingCost);
+      document.getElementById('co-total').textContent = formatRupiah(subtotal + shippingCost);
     }
 
     async function submitPhysicalOrder(e) {
@@ -1034,7 +1116,7 @@
       await triggerMidtransPayment(payload, true);
     }
 
-    // PEMBAYARAN E-BOOK & FISIK (MIDTRANS SNAP)
+    // PEMBAYARAN
     async function buyEbook(bookId) {
       if (!currentSession) return openAuthModal();
       await triggerMidtransPayment({ bookId }, false);
@@ -1061,8 +1143,7 @@
             'success'
           );
           await loadUserPhysicalOrders();
-          switchTab('library');
-          switchLibrarySubtab('orders');
+          navSelect('library', 'orders');
           return;
         }
 
@@ -1071,22 +1152,18 @@
             Swal.fire(
               'Pembayaran Berhasil!',
               isPhysical
-                ? 'Pesanan buku fisik Anda telah masuk antrean pengemasan. Pantau status & resinya di menu Pesanan.'
+                ? 'Pesanan buku fisik Anda telah masuk antrean pengemasan.'
                 : 'E-Book otomatis ditambahkan ke Koleksi Anda.',
               'success'
             );
             await Promise.all([loadBooks(), loadUserLibrary(), loadUserPhysicalOrders()]);
-            switchTab('library');
-            if (isPhysical) switchLibrarySubtab('orders');
-            else switchLibrarySubtab('ebooks');
+            navSelect('library', isPhysical ? 'orders' : 'ebooks');
           },
           onPending: async () => {
             Swal.fire('Menunggu Pembayaran', 'Selesaikan pembayaran Anda agar pesanan segera diproses.', 'info');
             if (isPhysical) await loadUserPhysicalOrders();
           },
-          onError: () => {
-            Swal.fire('Pembayaran Gagal', 'Silakan coba kembali.', 'error');
-          }
+          onError: () => Swal.fire('Pembayaran Gagal', 'Silakan coba kembali.', 'error')
         });
       } catch (err) {
         Swal.close();
@@ -1137,12 +1214,12 @@
 
     async function logout() {
       await supabaseClient.auth.signOut();
-      switchTab('store');
+      navSelect('store', 'all');
     }
 
-   async function openReader(bookId) {
+    // READER E-BOOK
+    async function openReader(bookId) {
       if (!currentSession) return openAuthModal();
-
       Swal.fire({ title: 'Membuka E-Book...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
       try {
@@ -1162,34 +1239,6 @@
         Swal.close();
         Swal.fire('Gagal Membuka Buku', err.message, 'error');
       }
-    }
-
-   
-    async function renderPdfPage(num) {
-      const page = await pdfDoc.getPage(num);
-      const viewport = page.getViewport({ scale: currentScale });
-      const canvas = document.getElementById('pdf-canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      document.getElementById('page-indicator').textContent = `${num} / ${pdfDoc.numPages}`;
-    }
-
-    function changePage(delta) {
-      if (!pdfDoc) return;
-      const next = currentPage + delta;
-      if (next >= 1 && next <= pdfDoc.numPages) {
-        currentPage = next;
-        renderPdfPage(currentPage);
-      }
-    }
-
-    function changeZoom(delta) {
-      if (!pdfDoc) return;
-      currentScale = Math.min(2.5, Math.max(0.6, currentScale + delta));
-      renderPdfPage(currentPage);
     }
 
     function closeReader() {
