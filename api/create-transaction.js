@@ -83,9 +83,19 @@ export default async function handler(req, res) {
     }
 
     const grossAmount = (Number(book.price) * qty) + shippingCost;
-    const prefix = isCashOffice ? 'CASH' : (isPhysical ? 'FSK' : 'EBK');
-    const orderId = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+   const prefix = isCashOffice ? 'CASH' : (isPhysical ? 'FSK' : 'EBK');
 
+    // Ambil nomor urut otomatis 4 digit dari Supabase (0001, 0002, dst.)
+    const seqRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_next_order_number`, {
+      method: 'POST',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const orderNumber = seqRes.ok ? await seqRes.json() : `${Date.now()}`;
+    const orderId = `${prefix}-${orderNumber}`;
     const txPayload = {
       order_id: orderId,
       user_id: user.id,
