@@ -819,7 +819,9 @@
     }
 
    let selectedArea = null;
-  let availableRates = [];
+let selectedArea = null;
+    let availableRates = [];
+    let areaSearchTimer = null;
 
     function openCheckoutModal(bookId) {
       if (!currentSession) return openAuthModal();
@@ -827,6 +829,7 @@
       if (!book) return;
 
       activeCheckoutBook = book;
+      selectedArea = null;
       availableRates = [];
 
       document.getElementById('co-book-id').value = book.id;
@@ -839,7 +842,8 @@
       qtyInput.value = 1;
       qtyInput.max = book.stock || 1;
 
-      document.getElementById('co-postal-code').value = '';
+      document.getElementById('co-area-search').value = '';
+      document.getElementById('co-area-results').classList.add('hidden');
       document.getElementById('co-rates-wrapper').classList.add('hidden');
       document.getElementById('co-shipping-mode').value = 'KURIR';
       handleShippingModeChange();
@@ -869,31 +873,51 @@
       recalcCheckoutTotal();
     }
 
-    function handlePostalInput(val) {
-      const clean = val.replace(/\D/g, '').slice(0, 5);
-      document.getElementById('co-postal-code').value = clean;
-      if (clean.length === 5) {
-        fetchShippingRates();
-      } else {
-        availableRates = [];
-        document.getElementById('co-rates-wrapper').classList.add('hidden');
-        recalcCheckoutTotal();
-      }
-    }
-
     function handleQtyChange() {
       recalcCheckoutTotal();
-      const postal = document.getElementById('co-postal-code').value.trim();
-      if (postal.length === 5) fetchShippingRates();
+      if (selectedArea) fetchShippingRates();
+    }
+
+    function searchDestinationArea(query) {
+      clearTimeout(areaSearchTimer);
+      const box = document.getElementById('co-area-results');
+      if (query.trim().length < 3) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      areaSearchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/shipping?q=${encodeURIComponent(query.trim())}`);
+          const data = await res.json();
+          const areas = data.areas || [];
+
+          if (areas.length === 0) {
+            box.innerHTML = `<div class="p-3 text-slate-400">Wilayah tidak ditemukan.</div>`;
+          } else {
+            box.innerHTML = areas.map((a) => `
+              <button type="button" onclick='selectArea(${JSON.stringify({ id: a.id, name: a.name })})'
+                class="w-full text-left px-3 py-2.5 hover:bg-blue-50 text-slate-700 transition">
+                ${a.name}
+              </button>
+            `).join('');
+          }
+          box.classList.remove('hidden');
+        } catch (err) {
+          box.classList.add('hidden');
+        }
+      }, 400);
+    }
+
+    function selectArea(area) {
+      selectedArea = area;
+      document.getElementById('co-area-search').value = area.name;
+      document.getElementById('co-area-results').classList.add('hidden');
+      fetchShippingRates();
     }
 
     async function fetchShippingRates() {
-      if (!activeCheckoutBook) return;
-      const postal = document.getElementById('co-postal-code').value.trim();
-      if (postal.length !== 5) {
-        return Swal.fire('Kode Pos Belum Lengkap', 'Masukkan 5 digit kode pos tujuan.', 'warning');
-      }
-
+      if (!selectedArea || !activeCheckoutBook) return;
       const loading = document.getElementById('co-rates-loading');
       const wrapper = document.getElementById('co-rates-wrapper');
       const select = document.getElementById('co-courier-select');
@@ -907,7 +931,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            destinationPostalCode: postal,
+            destinationAreaId: selectedArea.id,
             weightGram: activeCheckoutBook.weight_gram || 300,
             itemValue: activeCheckoutBook.price,
             quantity: qty
@@ -918,7 +942,7 @@
 
         availableRates = data.pricing || [];
         if (availableRates.length === 0) {
-          select.innerHTML = `<option value="">Kurir tidak tersedia untuk kode pos ini</option>`;
+          select.innerHTML = `<option value="">Kurir tidak tersedia untuk wilayah ini</option>`;
         } else {
           select.innerHTML = availableRates.map((r, idx) => `
             <option value="${idx}">${r.courier_name} - ${r.courier_service_name} (${r.duration}) — ${formatRupiah(r.price)}</option>
@@ -969,15 +993,14 @@
       let fullAddress = 'Ambil di Kantor';
 
       if (mode === 'KURIR') {
-        const postal = document.getElementById('co-postal-code').value.trim();
         const idx = document.getElementById('co-courier-select').value;
         const chosen = availableRates[idx];
-        if (postal.length !== 5 || !chosen) {
-          return Swal.fire('Pilih Kurir', 'Masukkan 5 digit kode pos tujuan dan pilih layanan kurir terlebih dahulu.', 'warning');
+        if (!selectedArea || !chosen) {
+          return Swal.fire('Pilih Wilayah & Kurir', 'Silakan cari kecamatan tujuan dan pilih layanan kurir terlebih dahulu.', 'warning');
         }
         shippingMethod = `${chosen.courier_name} - ${chosen.courier_service_name} (${chosen.duration})`;
         shippingCost = Number(chosen.price || 0);
-        fullAddress = `${document.getElementById('co-address').value.trim()} (Kode Pos: ${postal})`;
+        fullAddress = `${document.getElementById('co-address').value.trim()} | ${selectedArea.name}`;
       }
 
       const payload = {
