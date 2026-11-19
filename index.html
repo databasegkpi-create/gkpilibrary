@@ -1007,15 +1007,22 @@
               ${book.title}
             </h3>
             <p class="text-[11px] text-slate-400 truncate mb-2">${book.author || 'Tim Penulis'}</p>
-            <div class="mt-auto flex items-center justify-between gap-2">
+          <div class="mt-auto flex items-center justify-between gap-1.5">
               <span class="text-xs font-extrabold text-slate-900">${isOwned ? 'Lunas' : formatRupiah(book.price)}</span>
               ${isOwned
                 ? `<button onclick="openReader('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">Baca</button>`
                 : outOfStock
                   ? `<span class="text-[10px] font-bold text-red-500">Habis</span>`
-                  : isPhysical
-                    ? `<button onclick="openCheckoutModal('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">Pesan</button>`
-                    : `<button onclick="buyEbook('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Beli</button>`
+                  : `<div class="flex items-center gap-1">
+                       <button onclick="addToCart('${book.id}')" title="Tambah ke Keranjang"
+                         class="w-7 h-7 flex items-center justify-center text-xs bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition">
+                         <i class="fa-solid fa-cart-plus"></i>
+                       </button>
+                       ${isPhysical
+                         ? `<button onclick="openCheckoutModal('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">Pesan</button>`
+                         : `<button onclick="buyEbook('${book.id}')" class="px-2.5 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Beli</button>`
+                       }
+                     </div>`
               }
             </div>
           </article>
