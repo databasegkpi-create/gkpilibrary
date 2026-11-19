@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 
-
 async function sendWA(target, message) {
   const token = process.env.FONNTE_TOKEN;
   if (!token || !target) return;
@@ -48,36 +47,9 @@ export default async function handler(req, res) {
       (transaction_status === 'capture' && fraud_status === 'accept') ||
       transaction_status === 'settlement';
 
+    // Jika belum lunas (misal pending/expire/cancel), hentikan proses
     if (!isPaid) {
-      // Kirim notifikasi WA ke Admin saat pembayaran Midtrans LUNAS
-    const tipeProduk = tx.product_type === 'physical' ? 'Buku Fisik' : 'E-Book Digital';
-    const waMsg = [
-      `*PESANAN LUNAS (PAID) — GKPI BOOK STORE*`,
-      `Order ID: ${order_id}`,
-      `Tipe: ${tipeProduk} (${tx.quantity || 1}x)`,
-      `Total Bayar: Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}`,
-      tx.product_type === 'physical' ? `Penerima: ${tx.shipping_name || '-'} (${tx.shipping_phone || '-'})` : '',
-      tx.product_type === 'physical' ? `Pengiriman: ${tx.shipping_method || '-'}` : '',
-      tx.product_type === 'physical' ? `Alamat: ${tx.shipping_address || '-'}` : ''
-    ].filter(Boolean).join('\n');
-
-   // Kirim WA ke Admin
-    await sendWA(process.env.ADMIN_WA_NUMBER, waMsg);
-
-    // Kirim WA ke Pembeli (khusus buku fisik yang memiliki nomor WA)
-    if (tx.shipping_phone) {
-      const buyerMsg = [
-        `Halo *${tx.shipping_name || 'Pelanggan'}*,`,
-        `Pembayaran Anda di *GKPI Book Store* telah kami terima (*LUNAS*).`,
-        ``,
-        `Order ID: *${order_id}*`,
-        `Total: *Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}*`,
-        `Pengiriman: ${tx.shipping_method || '-'}`,
-        ``,
-        `Pesanan Anda segera kami kemas. Nomor resi akan kami kirimkan otomatis melalui WhatsApp ini. Terima kasih!`
-      ].join('\n');
-
-      await sendWA(tx.shipping_phone, buyerMsg);
+      return res.status(200).json({ status: 'ignored', transaction_status });
     }
 
     // 2. Cek transaksi di Supabase
@@ -85,7 +57,7 @@ export default async function handler(req, res) {
       headers: dbHeaders
     });
     const txList = await txRes.json();
-    const tx = txList[0];
+    const tx = txList?.[0];
 
     if (!tx) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
 
@@ -101,24 +73,61 @@ export default async function handler(req, res) {
       body: JSON.stringify({ status: 'PAID' })
     });
 
-    // 4. Jalankan aksi sesuai tipe produk
-    if (tx.product_type === 'physical') {
-      // Buku Fisik: Potong stok otomatis
-      await fetch(`${supabaseUrl}/rest/v1/rpc/decrement_book_stock`, {
-        method: 'POST',
-        headers: dbHeaders,
-        body: JSON.stringify({
-          p_book_id: tx.book_id,
-          p_qty: Number(tx.quantity || 1)
-        })
-      });
-    } else {
-      // E-Book: Masukkan ke Koleksi Saya (user_library)
-      await fetch(`${supabaseUrl}/rest/v1/user_library`, {
-        method: 'POST',
-        headers: { ...dbHeaders, Prefer: 'resolution=ignore-duplicates' },
-        body: JSON.stringify({ user_id: tx.user_id, book_id: tx.book_id })
-      });
+    // 4. Proses semua item (mendukung 1 buku maupun banyak buku di keranjang)
+    const orderItems = Array.isArray(tx.items) && tx.items.length > 0
+      ? tx.items
+      : [{ book_id: tx.book_id, title: 'Produk', quantity: Number(tx.quantity || 1), product_type: tx.product_type || 'digital' }];
+
+    for (const item of orderItems) {
+      if (item.product_type === 'physical') {
+        await fetch(`${supabaseUrl}/rest/v1/rpc/decrement_book_stock`, {
+          method: 'POST',
+          headers: dbHeaders,
+          body: JSON.stringify({
+            p_book_id: item.book_id,
+            p_qty: Number(item.quantity || 1)
+          })
+        });
+      } else {
+        await fetch(`${supabaseUrl}/rest/v1/user_library`, {
+          method: 'POST',
+          headers: { ...dbHeaders, Prefer: 'resolution=ignore-duplicates' },
+          body: JSON.stringify({ user_id: tx.user_id, book_id: item.book_id })
+        });
+      }
+    }
+
+    // 5. Kirim notifikasi WA ke Admin & Pembeli
+    const itemLines = orderItems.map((i) => `- ${i.title || 'Buku'} (${i.quantity || 1}x)`).join('\n');
+    const tipeProduk = tx.product_type === 'physical' ? 'Buku Fisik' : 'E-Book Digital';
+
+    const waMsg = [
+      `*PESANAN LUNAS (PAID) — GKPI BOOK STORE*`,
+      `Order ID: *${order_id}*`,
+      `Tipe: ${tipeProduk}`,
+      `Daftar Buku:\n${itemLines}`,
+      `Total Bayar: *Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}*`,
+      tx.product_type === 'physical' ? `Penerima: ${tx.shipping_name || '-'} (${tx.shipping_phone || '-'})` : '',
+      tx.product_type === 'physical' ? `Pengiriman: ${tx.shipping_method || '-'}` : '',
+      tx.product_type === 'physical' ? `Alamat: ${tx.shipping_address || '-'}` : ''
+    ].filter(Boolean).join('\n');
+
+    await sendWA(process.env.ADMIN_WA_NUMBER, waMsg);
+
+    if (tx.shipping_phone) {
+      const buyerMsg = [
+        `Halo *${tx.shipping_name || 'Pelanggan'}*,`,
+        `Pembayaran Anda di *GKPI Book Store* telah kami terima (*LUNAS*).`,
+        ``,
+        `Order ID: *${order_id}*`,
+        `Daftar Buku:\n${itemLines}`,
+        `Total: *Rp ${Number(tx.amount || 0).toLocaleString('id-ID')}*`,
+        `Pengiriman: ${tx.shipping_method || '-'}`,
+        ``,
+        `Pesanan Anda segera kami kemas. Nomor resi akan kami kirimkan otomatis melalui WhatsApp ini. Terima kasih!`
+      ].join('\n');
+
+      await sendWA(tx.shipping_phone, buyerMsg);
     }
 
     return res.status(200).json({ status: 'ok' });
