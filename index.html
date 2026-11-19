@@ -421,8 +421,13 @@
           <input type="email" id="auth-email" required placeholder="nama@email.com"
             class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Kata Sandi</label>
+     <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-600">Kata Sandi</label>
+            <button type="button" onclick="handleForgotPassword()" class="text-[11px] font-semibold text-blue-600 hover:underline">
+              Lupa kata sandi?
+            </button>
+          </div>
           <input type="password" id="auth-password" required minlength="6" placeholder="Minimal 6 karakter"
             class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
         </div>
