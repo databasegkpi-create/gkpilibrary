@@ -539,50 +539,6 @@
       }
     }
 
-    tbody.innerHTML = physicalPaid.map((tx) => {
-        const statusMap = {
-          MENUNGGU_DIKEMAS: 'bg-amber-50 text-amber-700 border-amber-200',
-          DIKIRIM: 'bg-blue-50 text-blue-700 border-blue-200',
-          SELESAI: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-        };
-        const st = tx.shipping_status || 'MENUNGGU_DIKEMAS';
-        const methodLabel = tx.shipping_method === 'AMBIL_DI_KANTOR'
-          ? 'Ambil di Kantor'
-          : tx.shipping_method === 'KURIR_FLAT'
-            ? 'Kurir (Flat Rp 20rb)'
-            : 'Kurir (Bayar di Tujuan)';
-
-        return `
-          <tr class="hover:bg-slate-50/80 transition align-top">
-            <td class="py-3.5 px-4">
-              <p class="font-mono text-xs font-bold text-slate-800">${tx.order_id}</p>
-              <p class="font-semibold text-slate-900 mt-0.5">${tx.books?.title || 'Buku Fisik'} <span class="text-blue-600">(${tx.quantity || 1}x)</span></p>
-              <p class="text-xs text-slate-400">${formatDate(tx.created_at)}</p>
-            </td>
-            <td class="py-3.5 px-4 max-w-xs">
-              <p class="font-semibold text-slate-800">${tx.shipping_name || '-'}</p>
-              <p class="text-xs text-slate-600"><i class="fa-brands fa-whatsapp text-emerald-600 mr-1"></i>${tx.shipping_phone || '-'}</p>
-              <p class="text-xs text-slate-500 mt-1">${tx.shipping_address || '-'}</p>
-            </td>
-            <td class="py-3.5 px-4 whitespace-nowrap">
-              <span class="text-xs font-medium text-slate-700 block">${methodLabel}</span>
-              <span class="text-xs font-bold text-slate-900">${formatRupiah(tx.amount)}</span>
-            </td>
-            <td class="py-3.5 px-4">
-              <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-full border ${statusMap[st] || statusMap.MENUNGGU_DIKEMAS}">
-                ${st.replace(/_/g, ' ')}
-              </span>
-              ${tx.tracking_number ? `<p class="text-xs text-slate-600 mt-1 font-mono">Resi: ${tx.tracking_number}</p>` : ''}
-            </td>
-            <td class="py-3.5 px-4 text-right whitespace-nowrap">
-              <button onclick="openShippingModal('${tx.order_id}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition">
-                <i class="fa-solid fa-truck-ramp-box mr-1"></i>Update
-              </button>
-            </td>
-          </tr>`;
-      }).join('');
-    }
-
     function renderTransactionsTable() {
       const tbody = document.getElementById('tx-table-body');
       if (allTransactions.length === 0) {
