@@ -1109,6 +1109,14 @@
       const actionBtn = document.getElementById('detail-action-btn');
       actionBtn.disabled = false;
 
+      const cartBtn = document.getElementById('detail-cart-btn');
+      if (!isOwned && !outOfStock) {
+        cartBtn.classList.remove('hidden');
+        cartBtn.onclick = () => { addToCart(book.id); closeDetailModal(); };
+      } else {
+        cartBtn.classList.add('hidden');
+      }
+
       if (isOwned) {
         actionBtn.className = 'px-6 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition';
         actionBtn.innerHTML = '<i class="fa-solid fa-book-open-reader mr-1.5"></i>Baca Sekarang';
