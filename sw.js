@@ -1,5 +1,5 @@
-const CACHE_NAME = 'gkpi-book-v1';
-const STATIC_ASSETS = ['/', '/index.html', '/Logo.png', '/manifest.json'];
+const CACHE_NAME = 'gkpi-book-v3';
+const STATIC_ASSETS = ['/', '/index.html', '/style.css', '/app.js', '/Logo.png', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
