@@ -1,5 +1,3 @@
-const { createClient } = require('@supabase/supabase-js');
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,31 +13,46 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
     if (!token) return res.status(401).json({ error: 'Unauthorized: Token tidak ditemukan' });
 
-    const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-    if (authErr || !user) return res.status(401).json({ error: 'Sesi tidak valid' });
+    // 1. Verifikasi sesi login admin langsung ke Supabase Auth API
+    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!userRes.ok) {
+      return res.status(401).json({ error: 'Sesi login tidak valid atau sudah kedaluwarsa.' });
+    }
+    const currentUser = await userRes.json();
 
     if (process.env.ADMIN_EMAILS) {
       const allowed = process.env.ADMIN_EMAILS.split(',').map((e) => e.trim().toLowerCase());
-      if (!allowed.includes((user.email || '').toLowerCase())) {
+      if (!allowed.includes((currentUser.email || '').toLowerCase())) {
         return res.status(403).json({ error: 'Akses ditolak (Bukan Admin)' });
       }
     }
 
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000
+    // 2. Ambil daftar seluruh user dari Supabase Auth Admin API
+    const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`
+      }
     });
-    if (error) throw error;
 
-    const users = (data.users || []).map((u) => ({
+    const listData = await listRes.json();
+    if (!listRes.ok) {
+      return res.status(listRes.status).json({
+        error: listData.msg || listData.message || 'Gagal mengambil daftar user dari Supabase.'
+      });
+    }
+
+    const users = (listData.users || []).map((u) => ({
       id: u.id,
       email: u.email || '-',
       full_name: u.user_metadata?.full_name || '-',
