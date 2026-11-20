@@ -212,19 +212,34 @@
       renderQuickLibrary();
     }
 
+   function getUserAvatarUrl(user) {
+      return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+    }
+
     function setSessionUI(session) {
       currentSession = session;
       const loginBtn = document.getElementById('btn-login-nav');
       const userMenu = document.getElementById('user-menu-nav');
       const emailBadge = document.getElementById('user-email-badge');
-      const avatar = document.getElementById('user-avatar-initial');
+      const avatarInitial = document.getElementById('user-avatar-initial');
+      const avatarImg = document.getElementById('user-avatar-img');
 
       if (session) {
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
-        emailBadge.textContent = session.user.email;
-        avatar.textContent = (session.user.email || 'U')[0].toUpperCase();
+        emailBadge.textContent = session.user.user_metadata?.full_name || session.user.email;
+
+        const photo = getUserAvatarUrl(session.user);
+        if (photo && avatarImg) {
+          avatarImg.src = photo;
+          avatarImg.classList.remove('hidden');
+          avatarInitial.classList.add('hidden');
+        } else {
+          if (avatarImg) avatarImg.classList.add('hidden');
+          avatarInitial.classList.remove('hidden');
+          avatarInitial.textContent = (session.user.email || 'U')[0].toUpperCase();
+        }
       } else {
         loginBtn.classList.remove('hidden');
         userMenu.classList.add('hidden');
@@ -233,6 +248,7 @@
         userPhysicalOrders = [];
       }
     }
+
 
  async function loadBooks() {
       try {
@@ -281,6 +297,9 @@
     function navSelect(tab, sub) {
       if (tab === 'library' && !currentSession) return openAuthModal();
       activeTab = tab;
+       
+      const profView = document.getElementById('profile-view');
+      if (profView) profView.classList.add('hidden');
 
       if (tab === 'store') {
         typeFilter = sub || 'all';
@@ -1110,4 +1129,107 @@
         if (btn) btn.classList.add('hidden');
       }
       deferredPrompt = null;
+    }
+
+function openProfileView() {
+      if (!currentSession) return openAuthModal();
+      activeTab = 'profile';
+
+      document.getElementById('store-controls').classList.add('hidden');
+      document.getElementById('library-controls').classList.add('hidden');
+      document.getElementById('books-grid').classList.add('hidden');
+      document.getElementById('physical-orders-list').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('quick-library-strip').classList.add('hidden');
+      document.getElementById('profile-view').classList.remove('hidden');
+
+      renderProfileView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderProfileView() {
+      const user = currentSession.user;
+      const meta = user.user_metadata || {};
+      const photo = getUserAvatarUrl(user);
+      const isFb = user.app_metadata?.provider === 'facebook';
+
+      const imgEl = document.getElementById('profile-avatar-img');
+      const initEl = document.getElementById('profile-avatar-initial');
+      if (photo) {
+        imgEl.src = photo;
+        imgEl.classList.remove('hidden');
+        initEl.classList.add('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+        initEl.classList.remove('hidden');
+        initEl.textContent = (meta.full_name || user.email || 'U')[0].toUpperCase();
+      }
+
+      document.getElementById('profile-display-name').textContent = meta.full_name || user.email.split('@')[0];
+      document.getElementById('profile-display-email').textContent = user.email;
+      document.getElementById('profile-provider-badge').innerHTML = isFb
+        ? '<i class="fa-brands fa-facebook mr-1"></i>Facebook'
+        : '<i class="fa-solid fa-envelope mr-1"></i>Email';
+
+      document.getElementById('prof-name').value = meta.full_name || '';
+      document.getElementById('prof-email').value = user.email || '';
+      document.getElementById('prof-phone').value = meta.phone || '';
+      document.getElementById('prof-address').value = meta.address || '';
+
+      // Render Koleksi E-Book Saya di dalam Profil
+      const listEl = document.getElementById('profile-ebooks-list');
+      const owned = allBooks.filter((b) => ownedBookIds.has(b.id) && (b.product_type || 'digital') === 'digital');
+
+      if (owned.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-8 px-4 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+            <p class="text-xs font-semibold text-slate-600">Belum ada E-Book di koleksi Anda</p>
+            <button onclick="navSelect('store', 'digital')" class="mt-3 px-4 py-1.5 text-xs font-semibold bg-slate-900 text-white rounded-full">
+              Jelajahi E-Book
+            </button>
+          </div>`;
+      } else {
+        listEl.innerHTML = owned.map((b) => `
+          <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="${b.cover_url || 'https://placehold.co/60x80?text=Buku'}" class="w-10 h-13 object-cover rounded-lg border border-slate-200 shrink-0">
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-slate-900 truncate">${b.title}</p>
+                <p class="text-[11px] text-slate-500 truncate">${b.author || 'Tim Penulis'}</p>
+              </div>
+            </div>
+            <button onclick="openReader('${b.id}')" class="px-3.5 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-full shrink-0">
+              <i class="fa-solid fa-book-open-reader mr-1"></i>Baca
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-profile');
+      btn.disabled = true;
+
+      const full_name = document.getElementById('prof-name').value.trim();
+      const phone = document.getElementById('prof-phone').value.trim();
+      const address = document.getElementById('prof-address').value.trim();
+
+      try {
+        const { data, error } = await supabaseClient.auth.updateUser({
+          data: { full_name, phone, address }
+        });
+        if (error) throw error;
+
+        if (data?.user) {
+          currentSession.user = data.user;
+          setSessionUI(currentSession);
+          renderProfileView();
+        }
+        Swal.fire({ icon: 'success', title: 'Profil Disimpan', timer: 1300, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Gagal Menyimpan', err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
     }
