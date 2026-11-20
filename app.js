@@ -234,7 +234,17 @@
       }
     }
 
-    async function loadBooks() {
+ async function loadBooks() {
+      try {
+        const res = await fetch('/api/books');
+        if (res.ok) {
+          allBooks = await res.json();
+          return;
+        }
+      } catch (e) {
+        console.warn('Fallback ke Supabase langsung:', e);
+      }
+
       const { data, error } = await supabaseClient
         .from('books')
         .select('id, title, author, price, cover_url, description, product_type, stock, weight_gram, created_at')
