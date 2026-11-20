@@ -159,3 +159,30 @@ button.bg-emerald-600:hover:not(:disabled) {
   from { opacity: 0; transform: scale(0.96) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+
+/* SIDEBAR AUTO-HIDE (Hanya aktif di layar desktop >= 1024px) */
+@media (min-width: 1024px) {
+  .sidebar-autohide {
+    width: 76px !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+  }
+
+  .sidebar-autohide:hover {
+    width: 240px !important;
+    box-shadow: 4px 0 24px -6px rgba(15, 23, 42, 0.08);
+  }
+
+  .sidebar-autohide .sidebar-label {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+
+  .sidebar-autohide:hover .sidebar-label {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
