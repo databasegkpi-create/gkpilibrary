@@ -66,14 +66,13 @@
           class="px-4 py-2 text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">
           Masuk
         </button>
-
-    <div id="user-menu-nav" class="hidden items-center gap-2">
-          <button onclick="openProfileView()" title="Profil Saya"
+  <div id="user-menu-nav" class="hidden items-center gap-2">
+          <a href="/profile.html" title="Buka Profil Saya"
             class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-2 sm:px-3 py-1.5 rounded-full transition">
             <img id="user-avatar-img" src="" alt="Foto Profil" class="hidden w-6 h-6 rounded-full object-cover shrink-0">
             <div id="user-avatar-initial" class="w-6 h-6 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">U</div>
             <span id="user-email-badge" class="hidden sm:inline text-xs font-medium text-slate-700 max-w-[130px] truncate"></span>
-          </button>
+          </a>
           <button onclick="logout()" title="Keluar"
             class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition">
             <i class="fa-solid fa-right-from-bracket text-sm"></i>
