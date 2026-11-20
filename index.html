@@ -95,29 +95,32 @@
 
       <!-- 1. LEFT SIDEBAR (DESKTOP) -->
       <aside class="hidden lg:flex flex-col justify-between w-56 shrink-0 border-r border-slate-100 p-4 bg-white">
-        <nav class="space-y-1">
-          <button onclick="navSelect('store', 'all')" id="side-home"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-900 transition">
-            <i class="fa-solid fa-house w-4 text-center"></i><span>Beranda</span>
+       <!-- BOTTOM NAVIGATION KHUSUS HP -->
+          <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+          <button onclick="navSelect('store', 'all')" id="mob-home"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-bold text-blue-600 bg-blue-50 transition">
+            <i class="fa-solid fa-house text-base mb-0.5"></i>
+            <span>Beranda</span>
           </button>
-          <button onclick="navSelect('store', 'digital')" id="side-digital"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-tablet-screen-button w-4 text-center"></i><span>E-Book</span>
+          <button onclick="navSelect('store', 'digital')" id="mob-digital"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-tablet-screen-button text-base mb-0.5"></i>
+            <span>E-Book</span>
           </button>
-          <button onclick="navSelect('store', 'physical')" id="side-physical"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-book w-4 text-center"></i><span>Buku Fisik</span>
+          <button onclick="navSelect('store', 'physical')" id="mob-physical"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-book text-base mb-0.5"></i>
+            <span>Buku Fisik</span>
           </button>
-
-          <div class="my-3 border-t border-slate-100"></div>
-
-          <button onclick="navSelect('library', 'ebooks')" id="side-ebooks"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-bookmark w-4 text-center"></i><span>Koleksi Saya</span>
+          <button onclick="navSelect('library', 'ebooks')" id="mob-ebooks"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-bookmark text-base mb-0.5"></i>
+            <span>Koleksi</span>
           </button>
-          <button onclick="navSelect('library', 'orders')" id="side-orders"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-truck-fast w-4 text-center"></i><span>Pesanan Fisik</span>
+          <button onclick="navSelect('library', 'orders')" id="mob-orders"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-truck-fast text-base mb-0.5"></i>
+            <span>Pesanan</span>
           </button>
         </nav>
 
@@ -817,6 +820,41 @@
       updateSidebarActive(tab, sub);
       renderView();
       renderQuickLibrary();
+      updateActiveNav(view, sub);
+    }
+
+    function updateActiveNav(view, sub) {
+      const key = view === 'store'
+        ? (sub === 'digital' ? 'digital' : sub === 'physical' ? 'physical' : 'home')
+        : (sub === 'orders' ? 'orders' : 'ebooks');
+
+      const keys = ['home', 'digital', 'physical', 'ebooks', 'orders'];
+
+      keys.forEach((k) => {
+        const isActive = k === key;
+
+        // 1. Update warna tab HP (Bottom Nav)
+        const mobBtn = document.getElementById(`mob-${k}`);
+        if (mobBtn) {
+          mobBtn.classList.toggle('text-blue-600', isActive);
+          mobBtn.classList.toggle('bg-blue-50', isActive);
+          mobBtn.classList.toggle('font-bold', isActive);
+          mobBtn.classList.toggle('text-slate-500', !isActive);
+          mobBtn.classList.toggle('font-medium', !isActive);
+        }
+
+        // 2. Update warna Sidebar Desktop
+        const sideBtn = document.getElementById(`side-${k}`);
+        if (sideBtn) {
+          sideBtn.classList.toggle('bg-blue-50', isActive);
+          sideBtn.classList.toggle('text-blue-600', isActive);
+          sideBtn.classList.toggle('font-semibold', isActive);
+          sideBtn.classList.toggle('bg-slate-100', false);
+          sideBtn.classList.toggle('text-slate-900', false);
+          sideBtn.classList.toggle('text-slate-500', !isActive);
+          sideBtn.classList.toggle('font-medium', !isActive);
+        }
+      });
     }
 
     function updateSidebarActive(tab, sub) {
@@ -1576,6 +1614,8 @@
       }
       deferredPrompt = null;
     }
+
+    
   </script>
 </body>
 </html>
