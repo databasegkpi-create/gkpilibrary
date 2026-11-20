@@ -87,56 +87,42 @@
     <!-- 3-COLUMN BODY -->
     <div class="flex-1 flex flex-col lg:flex-row">
 
-    <!-- LEFT SIDEBAR (AUTO-HIDE) -->
-  <aside class="sidebar-autohide hidden lg:flex flex-col bg-white border-r border-slate-100 sticky top-0 h-screen shrink-0 z-20">
-    <!-- Logo & Nama Toko -->
-    <div class="h-16 px-4 flex items-center gap-3 border-b border-slate-100 shrink-0">
-      <img src="/Logo.png" alt="Logo GKPI" class="w-10 h-10 object-contain shrink-0">
-      <div class="sidebar-label min-w-0">
-        <p class="font-extrabold text-slate-900 text-base leading-tight">GKPI Book</p>
-        <p class="text-[11px] font-medium text-slate-400">Biro Infokom</p>
-      </div>
-    </div>
-
+  <!-- LEFT SIDEBAR (AUTO-HIDE) -->
+  <aside class="group hidden lg:flex flex-col w-[72px] hover:w-56 transition-all duration-300 ease-in-out bg-white border-r border-slate-100 sticky top-16 h-[calc(100vh-4rem)] shrink-0 z-20 overflow-hidden hover:shadow-lg">
     <!-- Menu Navigasi -->
     <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto overflow-x-hidden">
       <button onclick="navSelect('store', 'all')" id="side-all" title="Beranda"
-        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition">
-        <i class="fa-solid fa-house w-5 text-center text-base shrink-0"></i>
-        <span class="sidebar-label">Beranda</span>
+        class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition">
+        <i class="fa-solid fa-house w-6 text-center text-base shrink-0"></i>
+        <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200">Beranda</span>
       </button>
 
       <button onclick="navSelect('store', 'digital')" id="side-digital" title="E-Book"
-        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
-        <i class="fa-solid fa-tablet-screen-button w-5 text-center text-base shrink-0"></i>
-        <span class="sidebar-label">E-Book</span>
+        class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-tablet-screen-button w-6 text-center text-base shrink-0"></i>
+        <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200">E-Book</span>
       </button>
 
       <button onclick="navSelect('store', 'physical')" id="side-physical" title="Buku Fisik"
-        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
-        <i class="fa-solid fa-book w-5 text-center text-base shrink-0"></i>
-        <span class="sidebar-label">Buku Fisik</span>
+        class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-book w-6 text-center text-base shrink-0"></i>
+        <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200">Buku Fisik</span>
       </button>
 
       <div class="my-3 border-t border-slate-100"></div>
 
       <button onclick="navSelect('library', 'ebooks')" id="side-ebooks" title="Koleksi Saya"
-        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
-        <i class="fa-solid fa-bookmark w-5 text-center text-base shrink-0"></i>
-        <span class="sidebar-label">Koleksi Saya</span>
+        class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-bookmark w-6 text-center text-base shrink-0"></i>
+        <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200">Koleksi Saya</span>
       </button>
 
       <button onclick="navSelect('library', 'orders')" id="side-orders" title="Pesanan Fisik"
-        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
-        <i class="fa-solid fa-truck-fast w-5 text-center text-base shrink-0"></i>
-        <span class="sidebar-label">Pesanan Fisik</span>
+        class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-truck-fast w-6 text-center text-base shrink-0"></i>
+        <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200">Pesanan Fisik</span>
       </button>
     </nav>
-
-    <!-- Footer Sidebar -->
-    <div class="p-4 border-t border-slate-100 shrink-0">
-      <p class="sidebar-label text-xs font-medium text-slate-500">GKPI Book Store</p>
-    </div>
   </aside>
 
       
