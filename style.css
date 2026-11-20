@@ -1,4 +1,22 @@
-/* === BASE & SMOOTH MOBILE === */
+/* === BASE & TYPOGRAPHY === */
+:root {
+  --coral: #ef5b4c;
+  --coral-hover: #e04838;
+  --soft-blush: #fdf2f0;
+  --soft-cream: #faf8f6;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: #ffffff;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+}
+
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
 .no-select {
   user-select: none;
   -webkit-user-select: none;
@@ -9,43 +27,36 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
-  overscroll-behavior-y: contain;
-  touch-action: manipulation;
-}
-
 @media (max-width: 640px) {
   input, select, textarea {
     font-size: 16px !important;
   }
 }
 
-/* === CUSTOM SCROLLBAR === */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* === SCROLLBAR LEMBUT === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #fafafa; }
+::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+/* === HERO BANNER PASTEL === */
+.hero-soft-banner {
+  background: linear-gradient(125deg, #fdf2f0 0%, #fceef3 50%, #f3f7fd 100%);
 }
 
-::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* === HEADER AKSEN WARNA === */
+/* === HEADER & SIDEBAR === */
 header {
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.04);
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-/* === EFEK INTERAKTIF SEMUA TOMBOL === */
+/* Sidebar kanan bernuansa warm cream lembut */
+aside:last-of-type {
+  background-color: var(--soft-cream) !important;
+  border-left: 1px solid #f1ece7 !important;
+}
+
+/* === EFEK TOMBOL (ROUNDED & SOFT CORAL ACCENT) === */
 button {
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.2s ease,
@@ -58,59 +69,81 @@ button:active:not(:disabled) {
   transform: scale(0.96);
 }
 
-/* Tombol Biru Utama (Beli, dll) — Gradasi & Glow */
+/* Tombol Aksi Utama (Beli) -> Soft Coral */
 button.bg-blue-600 {
-  background-image: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.32);
+  background-color: var(--coral) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 12px -3px rgba(239, 91, 76, 0.38);
 }
 
 button.bg-blue-600:hover:not(:disabled) {
+  background-color: var(--coral-hover) !important;
   transform: translateY(-1.5px);
-  box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.45);
-  filter: brightness(1.05);
+  box-shadow: 0 6px 16px -3px rgba(239, 91, 76, 0.48);
 }
 
-/* Tombol Gelap (Masuk, Pesan, Checkout) — Elegan & Lift */
+/* Tombol Gelap (Masuk, Pesan, Filter Aktif) -> Soft Charcoal Pill */
 button.bg-slate-900 {
-  background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.25);
+  background-color: #1e293b !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 10px -3px rgba(30, 41, 59, 0.25);
 }
 
 button.bg-slate-900:hover:not(:disabled) {
+  background-color: var(--coral) !important;
   transform: translateY(-1.5px);
-  box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.38);
+  box-shadow: 0 6px 14px -3px rgba(239, 91, 76, 0.38);
 }
 
-/* Tombol Hijau (Baca E-Book) */
+/* Tombol Hijau (Baca E-Book) -> Soft Sage/Emerald Pill */
 button.bg-emerald-600 {
-  background-image: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
+  background-color: #10b981 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 10px -3px rgba(16, 185, 129, 0.32);
 }
 
 button.bg-emerald-600:hover:not(:disabled) {
+  background-color: #059669 !important;
   transform: translateY(-1.5px);
-  box-shadow: 0 6px 16px -2px rgba(16, 185, 129, 0.42);
 }
 
-/* === KARTU BUKU LEBIH HIDUP === */
+/* === KARTU BUKU CLEAN & EDITORIAL === */
 #books-grid article {
-  background: #ffffff;
-  padding: 10px;
+  background: transparent;
+  padding: 6px;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  transition: transform 0.22s ease;
 }
 
 #books-grid article:hover {
   transform: translateY(-4px);
-  border-color: #bfdbfe;
-  box-shadow: 0 14px 28px -10px rgba(37, 99, 235, 0.16);
 }
 
-/* === SEARCH BAR FOCUS GLOW === */
+#books-grid article > div:first-child {
+  border-radius: 16px;
+  box-shadow: 0 8px 20px -8px rgba(15, 23, 42, 0.14);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+#books-grid article:hover > div:first-child {
+  box-shadow: 0 14px 28px -10px rgba(239, 91, 76, 0.22);
+}
+
+/* Harga buku berwarna warm coral seperti referensi */
+#books-grid article .font-extrabold {
+  color: var(--coral) !important;
+}
+
+/* === SEARCH BAR PILL === */
+#search-input {
+  border-radius: 999px !important;
+  background-color: #f6f6f6 !important;
+}
+
 #search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  background-color: #ffffff !important;
+  border-color: #fda4af !important;
+  box-shadow: 0 0 0 3px rgba(239, 91, 76, 0.12);
 }
 
 /* === ANIMASI MODAL === */
@@ -121,12 +154,6 @@ button.bg-emerald-600:hover:not(:disabled) {
 }
 
 @keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
