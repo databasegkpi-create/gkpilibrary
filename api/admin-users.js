@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -19,13 +19,12 @@ export default async function handler(req, res) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 1. Cek token login admin
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
     if (!token) return res.status(401).json({ error: 'Unauthorized: Token tidak ditemukan' });
 
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-    if (authErr || !user) return res.status(401).json({ error: 'Sesi tidak valid: ' + (authErr?.message || '') });
+    if (authErr || !user) return res.status(401).json({ error: 'Sesi tidak valid' });
 
     if (process.env.ADMIN_EMAILS) {
       const allowed = process.env.ADMIN_EMAILS.split(',').map((e) => e.trim().toLowerCase());
@@ -34,7 +33,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Ambil daftar user
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000
@@ -59,4 +57,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
-}
+};
