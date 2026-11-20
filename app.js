@@ -393,9 +393,13 @@
       }
     }
 
+ let searchTimer = null;
     function handleSearch(val) {
-      searchQuery = val.trim().toLowerCase();
-      renderView();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        searchQuery = val.trim().toLowerCase();
+        renderView();
+      }, 250);
     }
 
     function filterByAuthor(authorName) {
