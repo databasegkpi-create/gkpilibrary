@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GKPI Book Store — Toko E-Book & Buku Fisik Resmi</title>
@@ -17,10 +18,14 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-SwVTge5CRz15U5GM"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+ 
   <style>
   <link rel="stylesheet" href="/style.css">
   </style>
 </head>
+  
 <body class="bg-slate-50 text-slate-800 min-h-screen antialiased pb-20 lg:pb-0">
 
   <!-- MAIN APP CONTAINER (FULL SCREEN DESKTOP) -->
@@ -117,31 +122,48 @@
       <!-- 2. CENTER MAIN CONTENT -->
       <main class="flex-1 min-w-0 p-4 sm:p-6 bg-slate-50/40">
 
-   <!-- Hero Banner: Clean Editorial -->
-        <div class="mb-6 rounded-2xl bg-gradient-to-r from-white via-blue-50/40 to-slate-50 border border-slate-200/80 border-l-4 border-l-blue-600 p-4 sm:p-5 shadow-xs">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <p class="text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">
+  <!-- Hero Banner: Soft Pastel Editorial -->
+        <div class="hero-soft-banner mb-7 rounded-3xl p-6 sm:p-8 relative overflow-hidden border border-rose-100/80">
+          <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="max-w-lg">
+              <span class="inline-block text-[11px] font-bold uppercase tracking-[0.15em] text-rose-500 mb-2">
                 Publikasi Resmi Biro Infokom GKPI
-              </p>
-              <h1 class="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                Katalog E-Book &amp; Buku Fisik GKPI
+              </span>
+              <h1 class="font-editorial text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                Bacaan Bermutu Untuk<br class="hidden sm:inline"> Tahun Yang Lebih Bermakna
               </h1>
-              <p class="text-xs text-slate-500 mt-1 max-w-lg leading-relaxed">
-                Akses Suara GKPI, Almanak, dan literatur resmi secara instan atau kirim langsung ke alamat Anda.
+              <p class="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
+                Temukan Suara GKPI, Almanak, dan literatur resmi dalam format E-Book instan maupun buku cetak berkualitas.
               </p>
-            </div>
-            <div class="hidden sm:flex items-center gap-2.5 shrink-0">
-              <div class="px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 text-xs">
-                <span class="block font-bold text-slate-800"><i class="fa-solid fa-tablet-screen-button text-blue-600 mr-1.5"></i>E-Book Instan</span>
-                <span class="text-[11px] text-slate-400">Langsung baca di app</span>
+              <div class="mt-5 flex flex-wrap items-center gap-2.5">
+                <button onclick="setTypeFilter('digital')" class="px-5 py-2.5 rounded-full bg-white text-slate-900 hover:bg-rose-500 hover:text-white text-xs font-bold shadow-sm transition">
+                  Jelajahi E-Book <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+                </button>
+                <button onclick="setTypeFilter('physical')" class="px-5 py-2.5 rounded-full bg-white/70 hover:bg-white text-slate-700 text-xs font-semibold border border-rose-200/70 transition">
+                  Lihat Buku Fisik
+                </button>
               </div>
-              <div class="px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 text-xs">
-                <span class="block font-bold text-slate-800"><i class="fa-solid fa-truck-fast text-amber-500 mr-1.5"></i>Kirim Seluruh RI</span>
-                <span class="text-[11px] text-slate-400">Kurir &amp; Bus/Travel</span>
+            </div>
+
+            <!-- Visual Kanan (Logo & Mini Preview Kartu) -->
+            <div class="hidden md:flex items-center gap-3 shrink-0 pr-2">
+              <div class="w-24 h-32 rounded-2xl bg-white/90 shadow-md border border-white p-3 flex flex-col items-center justify-center text-center -rotate-3">
+                <img src="/Logo.png" alt="GKPI" class="w-11 h-11 object-contain mb-2">
+                <span class="text-[10px] font-bold text-slate-700 leading-tight">E-Book<br>Instan</span>
+              </div>
+              <div class="w-24 h-32 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 shadow-md border border-white p-3 flex flex-col items-center justify-center text-center rotate-3 translate-y-2">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-2">
+                  <i class="fa-solid fa-book-open text-base"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-700 leading-tight">Buku Cetak<br>Resmi</span>
               </div>
             </div>
           </div>
+
+          <!-- Aksen Bola Pastel Lembut -->
+          <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-sky-200/35 blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-14 right-32 w-44 h-44 rounded-full bg-amber-200/35 blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-rose-200/40 blur-2xl pointer-events-none"></div>
         </div>
 
         <!-- Filter Pills & Sort Bar (Store Mode) -->
