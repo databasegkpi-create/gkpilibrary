@@ -826,42 +826,45 @@
         updateLibrarySubtabUI();
       }
 
-      updateSidebarActive(tab, sub);
+    updateSidebarActive(tab, sub);
       renderView();
       renderQuickLibrary();
-      updateActiveNav(view, sub);
+      updateActiveNav(tab, sub); // <-- ubah 'view' menjadi 'tab'
     }
 
-    function updateActiveNav(view, sub) {
-      const key = view === 'store'
-        ? (sub === 'digital' ? 'digital' : sub === 'physical' ? 'physical' : 'home')
-        : (sub === 'orders' ? 'orders' : 'ebooks');
+   function updateActiveNav(view, sub) {
+      let activeKey = 'home';
+      if (view === 'library') {
+        activeKey = sub === 'orders' ? 'orders' : 'ebooks';
+      } else {
+        if (sub === 'digital') activeKey = 'digital';
+        else if (sub === 'physical') activeKey = 'physical';
+        else activeKey = 'home';
+      }
 
-      const keys = ['home', 'digital', 'physical', 'ebooks', 'orders'];
+      ['home', 'digital', 'physical', 'ebooks', 'orders'].forEach((k) => {
+        const isActive = k === activeKey;
 
-      keys.forEach((k) => {
-        const isActive = k === key;
-
-        // 1. Update warna tab HP (Bottom Nav)
+        // Tab Bawah (HP)
         const mobBtn = document.getElementById(`mob-${k}`);
         if (mobBtn) {
-          mobBtn.classList.toggle('text-blue-600', isActive);
-          mobBtn.classList.toggle('bg-blue-50', isActive);
-          mobBtn.classList.toggle('font-bold', isActive);
-          mobBtn.classList.toggle('text-slate-500', !isActive);
-          mobBtn.classList.toggle('font-medium', !isActive);
+          mobBtn.classList.remove('text-blue-600', 'bg-blue-50', 'font-bold', 'text-slate-500', 'font-medium');
+          if (isActive) {
+            mobBtn.classList.add('text-blue-600', 'bg-blue-50', 'font-bold');
+          } else {
+            mobBtn.classList.add('text-slate-500', 'font-medium');
+          }
         }
 
-        // 2. Update warna Sidebar Desktop
+        // Sidebar (Desktop)
         const sideBtn = document.getElementById(`side-${k}`);
         if (sideBtn) {
-          sideBtn.classList.toggle('bg-blue-50', isActive);
-          sideBtn.classList.toggle('text-blue-600', isActive);
-          sideBtn.classList.toggle('font-semibold', isActive);
-          sideBtn.classList.toggle('bg-slate-100', false);
-          sideBtn.classList.toggle('text-slate-900', false);
-          sideBtn.classList.toggle('text-slate-500', !isActive);
-          sideBtn.classList.toggle('font-medium', !isActive);
+          sideBtn.classList.remove('text-blue-600', 'bg-blue-50', 'font-semibold', 'bg-slate-100', 'text-slate-900', 'text-slate-500', 'font-medium');
+          if (isActive) {
+            sideBtn.classList.add('text-blue-600', 'bg-blue-50', 'font-semibold');
+          } else {
+            sideBtn.classList.add('text-slate-500', 'font-medium');
+          }
         }
       });
     }
