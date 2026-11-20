@@ -277,24 +277,33 @@
     </div>
   </div>
 
-  <!-- MOBILE BOTTOM NAVIGATION -->
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-around z-30">
-    <button onclick="navSelect('store', 'all')" class="flex flex-col items-center gap-0.5 text-slate-700 text-[11px] font-medium px-3">
-      <i class="fa-solid fa-house text-base"></i><span>Beranda</span>
-    </button>
-    <button onclick="navSelect('store', 'digital')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
-      <i class="fa-solid fa-tablet-screen-button text-base"></i><span>E-Book</span>
-    </button>
-    <button onclick="navSelect('store', 'physical')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
-      <i class="fa-solid fa-book text-base"></i><span>Fisik</span>
-    </button>
-    <button onclick="navSelect('library', 'ebooks')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
-      <i class="fa-solid fa-bookmark text-base"></i><span>Koleksi</span>
-    </button>
-    <button onclick="navSelect('library', 'orders')" class="flex flex-col items-center gap-0.5 text-slate-500 text-[11px] font-medium px-3">
-      <i class="fa-solid fa-truck-fast text-base"></i><span>Pesanan</span>
-    </button>
-  </nav>
+   <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+          <button onclick="navSelect('store', 'all')" id="mob-home"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-bold text-blue-600 bg-blue-50 transition">
+            <i class="fa-solid fa-house text-base mb-0.5"></i>
+            <span>Beranda</span>
+          </button>
+          <button onclick="navSelect('store', 'digital')" id="mob-digital"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-tablet-screen-button text-base mb-0.5"></i>
+            <span>E-Book</span>
+          </button>
+          <button onclick="navSelect('store', 'physical')" id="mob-physical"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-book text-base mb-0.5"></i>
+            <span>Buku Fisik</span>
+          </button>
+          <button onclick="navSelect('library', 'ebooks')" id="mob-ebooks"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-bookmark text-base mb-0.5"></i>
+            <span>Koleksi</span>
+          </button>
+          <button onclick="navSelect('library', 'orders')" id="mob-orders"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
+            <i class="fa-solid fa-truck-fast text-base mb-0.5"></i>
+            <span>Pesanan</span>
+          </button>
+        </nav>
 
   <!-- MODAL DETAIL BUKU -->
   <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
