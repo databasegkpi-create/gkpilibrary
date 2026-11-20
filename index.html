@@ -50,34 +50,38 @@
           class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-100/80 border border-transparent rounded-xl focus:bg-white focus:border-slate-300 focus:outline-none transition">
       </div>
 
-      <!-- Right Auth / Profile -->
+    <!-- Right Auth / Profile -->
       <div class="flex items-center gap-2 shrink-0">
-
-        <button onclick="openCartModal()" class="relative w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition" title="Keranjang Belanja">
+        <button onclick="openCartModal()" title="Keranjang Belanja"
+          class="relative w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition shrink-0">
           <i class="fa-solid fa-cart-shopping text-sm"></i>
           <span id="cart-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">0</span>
         </button>
-        <button id="btn-install-pwa" onclick="installPWA()" class="hidden px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold items-center gap-1.5 transition" title="Instal Aplikasi">
-          <i class="fa-solid fa-download"></i>
+
+        <button id="btn-install-pwa" onclick="installPWA()" title="Instal Aplikasi"
+          class="hidden h-9 px-3.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold items-center justify-center gap-1.5 whitespace-nowrap transition shrink-0">
+          <i class="fa-solid fa-download text-xs"></i>
           <span class="hidden sm:inline">Instal App</span>
         </button>
-        
+
         <button id="btn-login-nav" onclick="openAuthModal()"
-          class="px-4 py-2 text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">
+          class="h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center whitespace-nowrap transition shrink-0">
           Masuk
         </button>
-  <div id="user-menu-nav" class="hidden items-center gap-2">
+
+        <div id="user-menu-nav" class="hidden items-center gap-2">
           <a href="/profile.html" title="Buka Profil Saya"
-            class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-2 sm:px-3 py-1.5 rounded-full transition">
+            class="h-9 flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-2 sm:px-3 rounded-full transition">
             <img id="user-avatar-img" src="" alt="Foto Profil" class="hidden w-6 h-6 rounded-full object-cover shrink-0">
             <div id="user-avatar-initial" class="w-6 h-6 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">U</div>
             <span id="user-email-badge" class="hidden sm:inline text-xs font-medium text-slate-700 max-w-[130px] truncate"></span>
           </a>
           <button onclick="logout()" title="Keluar"
-            class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition">
+            class="w-9 h-9 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition shrink-0">
             <i class="fa-solid fa-right-from-bracket text-sm"></i>
           </button>
         </div>
+      </div>
     </header>
 
     <!-- 3-COLUMN BODY -->
