@@ -1,7 +1,6 @@
-/* === BASE & TYPOGRAPHY === */
 :root {
-  --coral: #ef5b4c;
-  --coral-hover: #e04838;
+  --coral: #d93829;    
+  --coral-hover: #be2d20;
   --soft-blush: #fdf2f0;
   --soft-cream: #faf8f6;
 }
@@ -95,11 +94,14 @@ button.bg-slate-900:hover:not(:disabled) {
   box-shadow: 0 6px 14px -3px rgba(239, 91, 76, 0.38);
 }
 
-/* Tombol Hijau (Baca E-Book) -> Soft Sage/Emerald Pill */
+.text-slate-400 {
+  color: #64748b !important; /* setara slate-500, lolos standar kontras */
+}
+
 button.bg-emerald-600 {
-  background-color: #10b981 !important;
+  background-color: #047857 !important;
   border-radius: 999px !important;
-  box-shadow: 0 4px 10px -3px rgba(16, 185, 129, 0.32);
+  box-shadow: 0 4px 10px -3px rgba(4, 120, 87, 0.32);
 }
 
 button.bg-emerald-600:hover:not(:disabled) {
