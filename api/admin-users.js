@@ -1,25 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // 1. Pastikan yang mengakses sudah login
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://hhbghudcjnqzohksebox.supabase.co';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+    if (!serviceKey) {
+      return res.status(500).json({
+        error: 'Environment Variable SUPABASE_SERVICE_ROLE_KEY belum diatur di Vercel.'
+      });
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // 1. Cek token login admin
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '').trim();
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    if (!token) return res.status(401).json({ error: 'Unauthorized: Token tidak ditemukan' });
 
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-    if (authErr || !user) return res.status(401).json({ error: 'Sesi tidak valid' });
+    if (authErr || !user) return res.status(401).json({ error: 'Sesi tidak valid: ' + (authErr?.message || '') });
 
-    // (Opsional) Jika Anda punya env ADMIN_EMAILS di Vercel, aktifkan filter ini:
     if (process.env.ADMIN_EMAILS) {
       const allowed = process.env.ADMIN_EMAILS.split(',').map((e) => e.trim().toLowerCase());
       if (!allowed.includes((user.email || '').toLowerCase())) {
@@ -27,7 +34,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Ambil daftar user dari Supabase Auth (hingga 1.000 user per halaman)
+    // 2. Ambil daftar user
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000
@@ -46,11 +53,10 @@ export default async function handler(req, res) {
       last_sign_in_at: u.last_sign_in_at
     }));
 
-    // Urutkan dari yang paling baru mendaftar
     users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     return res.status(200).json({ total: users.length, users });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 }
