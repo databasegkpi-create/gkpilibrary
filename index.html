@@ -21,6 +21,19 @@
     .no-select { user-select: none; -webkit-user-select: none; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+    html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    overscroll-behavior-y: contain;
+    touch-action: manipulation;
+  }
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
   </style>
 </head>
 <body class="bg-slate-100/80 text-slate-800 min-h-screen antialiased pb-20 lg:pb-6 lg:p-5">
@@ -53,6 +66,10 @@
         <button onclick="openCartModal()" class="relative w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition" title="Keranjang Belanja">
           <i class="fa-solid fa-cart-shopping text-sm"></i>
           <span id="cart-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+        </button>
+        <button id="btn-install-pwa" onclick="installPWA()" class="hidden px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold items-center gap-1.5 transition" title="Instal Aplikasi">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden sm:inline">Instal App</span>
         </button>
         
         <button id="btn-login-nav" onclick="openAuthModal()"
