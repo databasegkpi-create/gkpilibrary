@@ -67,17 +67,18 @@
           Masuk
         </button>
 
-        <div id="user-menu-nav" class="hidden items-center gap-2.5">
-          <div class="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
-            <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center" id="user-avatar-initial">U</div>
-            <span id="user-email-badge" class="text-xs font-medium text-slate-600 max-w-[130px] truncate"></span>
-          </div>
+    <div id="user-menu-nav" class="hidden items-center gap-2">
+          <button onclick="openProfileView()" title="Profil Saya"
+            class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-2 sm:px-3 py-1.5 rounded-full transition">
+            <img id="user-avatar-img" src="" alt="Foto Profil" class="hidden w-6 h-6 rounded-full object-cover shrink-0">
+            <div id="user-avatar-initial" class="w-6 h-6 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">U</div>
+            <span id="user-email-badge" class="hidden sm:inline text-xs font-medium text-slate-700 max-w-[130px] truncate"></span>
+          </button>
           <button onclick="logout()" title="Keluar"
             class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition">
             <i class="fa-solid fa-right-from-bracket text-sm"></i>
           </button>
         </div>
-      </div>
     </header>
 
     <!-- 3-COLUMN BODY -->
@@ -248,6 +249,75 @@
             Jelajahi Katalog
           </button>
         </div>
+
+        <!-- HALAMAN PROFIL USER -->
+        <section id="profile-view" class="hidden space-y-6">
+          <!-- Header Profil -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div class="flex items-center gap-4">
+              <img id="profile-avatar-img" src="" alt="Foto Profil" class="hidden w-16 h-16 rounded-full object-cover border-2 border-rose-100 shadow-xs shrink-0">
+              <div id="profile-avatar-initial" class="w-16 h-16 rounded-full bg-blue-600 text-white text-2xl font-extrabold flex items-center justify-center shrink-0">U</div>
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 id="profile-display-name" class="text-lg font-extrabold text-slate-900 truncate">Pengguna</h2>
+                  <span id="profile-provider-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Email</span>
+                </div>
+                <p id="profile-display-email" class="text-xs text-slate-500 truncate mt-0.5">-</p>
+              </div>
+            </div>
+            <button onclick="navSelect('store', 'all')" class="px-4 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition self-start sm:self-center">
+              <i class="fa-solid fa-arrow-left mr-1.5"></i>Kembali ke Toko
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Form Informasi Akun -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6">
+              <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-rose-500"></i>Informasi Pribadi
+              </h3>
+              <form onsubmit="saveProfile(event)" class="space-y-3.5">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+                  <input type="text" id="prof-name" placeholder="Nama lengkap Anda"
+                    class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Email Akun</label>
+                  <input type="email" id="prof-email" disabled
+                    class="w-full px-3.5 py-2.5 text-sm bg-slate-50 text-slate-500 border border-slate-200 rounded-xl cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP / WhatsApp</label>
+                  <input type="tel" id="prof-phone" placeholder="0812xxxxxxxx"
+                    class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Pengiriman Utama</label>
+                  <textarea id="prof-address" rows="2" placeholder="Alamat lengkap untuk mempercepat checkout buku fisik..."
+                    class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20"></textarea>
+                </div>
+                <button type="submit" id="btn-save-profile"
+                  class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full transition">
+                  <i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Perubahan
+                </button>
+              </form>
+            </div>
+
+            <!-- Menu Koleksi E-Book & Pesanan di Profil -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <i class="fa-solid fa-bookmark text-rose-500"></i>Koleksi E-Book Saya
+                </h3>
+                <button onclick="navSelect('library', 'orders')" class="text-xs font-semibold text-blue-600 hover:underline">
+                  Lihat Pesanan Fisik &rarr;
+                </button>
+              </div>
+              <div id="profile-ebooks-list" class="space-y-2.5 flex-1"></div>
+            </div>
+          </div>
+        </section>
 
         <!-- Quick Access Strip (Seperti bagian bawah referensi) -->
         <section id="quick-library-strip" class="hidden mt-8 pt-6 border-t border-slate-200/80">
