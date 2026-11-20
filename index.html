@@ -87,40 +87,57 @@
     <!-- 3-COLUMN BODY -->
     <div class="flex-1 flex flex-col lg:flex-row">
 
-     <!-- 1. LEFT SIDEBAR (DESKTOP) -->
-      <aside class="hidden lg:flex flex-col justify-between w-56 shrink-0 border-r border-slate-100 p-4 bg-white">
-        <nav class="space-y-1">
-          <button onclick="navSelect('store', 'all')" id="side-home"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition">
-            <i class="fa-solid fa-house w-4 text-center"></i><span>Beranda</span>
-          </button>
-          <button onclick="navSelect('store', 'digital')" id="side-digital"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-tablet-screen-button w-4 text-center"></i><span>E-Book</span>
-          </button>
-          <button onclick="navSelect('store', 'physical')" id="side-physical"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-book w-4 text-center"></i><span>Buku Fisik</span>
-          </button>
+    <!-- LEFT SIDEBAR (AUTO-HIDE) -->
+  <aside class="sidebar-autohide hidden lg:flex flex-col bg-white border-r border-slate-100 sticky top-0 h-screen shrink-0 z-20">
+    <!-- Logo & Nama Toko -->
+    <div class="h-16 px-4 flex items-center gap-3 border-b border-slate-100 shrink-0">
+      <img src="/Logo.png" alt="Logo GKPI" class="w-10 h-10 object-contain shrink-0">
+      <div class="sidebar-label min-w-0">
+        <p class="font-extrabold text-slate-900 text-base leading-tight">GKPI Book</p>
+        <p class="text-[11px] font-medium text-slate-400">Biro Infokom</p>
+      </div>
+    </div>
 
-          <div class="my-3 border-t border-slate-100"></div>
+    <!-- Menu Navigasi -->
+    <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto overflow-x-hidden">
+      <button onclick="navSelect('store', 'all')" id="side-all" title="Beranda"
+        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition">
+        <i class="fa-solid fa-house w-5 text-center text-base shrink-0"></i>
+        <span class="sidebar-label">Beranda</span>
+      </button>
 
-          <button onclick="navSelect('library', 'ebooks')" id="side-ebooks"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-bookmark w-4 text-center"></i><span>Koleksi Saya</span>
-          </button>
-          <button onclick="navSelect('library', 'orders')" id="side-orders"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
-            <i class="fa-solid fa-truck-fast w-4 text-center"></i><span>Pesanan Fisik</span>
-          </button>
-        </nav>
+      <button onclick="navSelect('store', 'digital')" id="side-digital" title="E-Book"
+        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-tablet-screen-button w-5 text-center text-base shrink-0"></i>
+        <span class="sidebar-label">E-Book</span>
+      </button>
 
-        <!-- Bottom Info -->
-        <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400 px-2 space-y-1">
-          <p class="font-semibold text-slate-600">GKPI Book Store</p>
-          <p>&copy; 2026 Dio Very Hutabarat</p>
-        </div>
-      </aside>
+      <button onclick="navSelect('store', 'physical')" id="side-physical" title="Buku Fisik"
+        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-book w-5 text-center text-base shrink-0"></i>
+        <span class="sidebar-label">Buku Fisik</span>
+      </button>
+
+      <div class="my-3 border-t border-slate-100"></div>
+
+      <button onclick="navSelect('library', 'ebooks')" id="side-ebooks" title="Koleksi Saya"
+        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-bookmark w-5 text-center text-base shrink-0"></i>
+        <span class="sidebar-label">Koleksi Saya</span>
+      </button>
+
+      <button onclick="navSelect('library', 'orders')" id="side-orders" title="Pesanan Fisik"
+        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+        <i class="fa-solid fa-truck-fast w-5 text-center text-base shrink-0"></i>
+        <span class="sidebar-label">Pesanan Fisik</span>
+      </button>
+    </nav>
+
+    <!-- Footer Sidebar -->
+    <div class="p-4 border-t border-slate-100 shrink-0">
+      <p class="sidebar-label text-xs font-medium text-slate-500">GKPI Book Store</p>
+    </div>
+  </aside>
 
       
       <!-- 2. CENTER MAIN CONTENT -->
