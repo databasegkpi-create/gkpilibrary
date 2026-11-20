@@ -311,8 +311,19 @@
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">URL Gambar Sampul (Cover)</label>
           <div class="flex gap-3 items-start">
-            <input type="url" id="book-cover" oninput="updateCoverPreview(this.value)" placeholder="https://..."
-              class="flex-1 px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex-1">
+              <input type="url" id="book-cover" oninput="updateCoverPreview(this.value)" placeholder="https://..."
+                class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <div class="mt-2 flex items-center gap-2">
+                <label for="book-cover-file"
+                  class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg transition">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span id="upload-cover-label">Upload Gambar Cover</span>
+                </label>
+                <input type="file" id="book-cover-file" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="uploadCoverImage(this)">
+                <span class="text-[11px] text-slate-400">JPG/PNG/WebP (Maks. 2MB)</span>
+              </div>
+            </div>
             <img id="cover-preview" src="https://placehold.co/80x100?text=Cover" alt="Preview"
               class="w-12 h-16 object-cover rounded-md border border-slate-200 bg-slate-100 shrink-0">
           </div>
@@ -1174,6 +1185,43 @@
     }
 
     initAdmin();
+
+    async function uploadCoverImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        input.value = '';
+        return Swal.fire('File Terlalu Besar', 'Ukuran gambar maksimal 2 MB. Kompres dulu agar cepat dimuat jemaat.', 'warning');
+      }
+
+      const label = document.getElementById('upload-cover-label');
+      label.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Mengunggah...';
+
+      try {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const fileName = `cover-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabaseClient.storage
+          .from('covers')
+          .upload(fileName, file, { cacheControl: '31536000', upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabaseClient.storage.from('covers').getPublicUrl(fileName);
+        const publicUrl = data.publicUrl;
+
+        document.getElementById('book-cover').value = publicUrl;
+        updateCoverPreview(publicUrl);
+
+        Swal.fire({ icon: 'success', title: 'Cover Terunggah!', timer: 1200, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Gagal Upload', err.message, 'error');
+      } finally {
+        label.textContent = 'Upload Gambar Cover';
+        input.value = '';
+      }
+    }
   </script>
 </body>
 </html>
