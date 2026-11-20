@@ -93,34 +93,31 @@
     <!-- 3-COLUMN BODY -->
     <div class="flex-1 flex flex-col lg:flex-row">
 
-      <!-- 1. LEFT SIDEBAR (DESKTOP) -->
+     <!-- 1. LEFT SIDEBAR (DESKTOP) -->
       <aside class="hidden lg:flex flex-col justify-between w-56 shrink-0 border-r border-slate-100 p-4 bg-white">
-       <!-- BOTTOM NAVIGATION KHUSUS HP -->
-          <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
-          <button onclick="navSelect('store', 'all')" id="mob-home"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-bold text-blue-600 bg-blue-50 transition">
-            <i class="fa-solid fa-house text-base mb-0.5"></i>
-            <span>Beranda</span>
+        <nav class="space-y-1">
+          <button onclick="navSelect('store', 'all')" id="side-home"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition">
+            <i class="fa-solid fa-house w-4 text-center"></i><span>Beranda</span>
           </button>
-          <button onclick="navSelect('store', 'digital')" id="mob-digital"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
-            <i class="fa-solid fa-tablet-screen-button text-base mb-0.5"></i>
-            <span>E-Book</span>
+          <button onclick="navSelect('store', 'digital')" id="side-digital"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-tablet-screen-button w-4 text-center"></i><span>E-Book</span>
           </button>
-          <button onclick="navSelect('store', 'physical')" id="mob-physical"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
-            <i class="fa-solid fa-book text-base mb-0.5"></i>
-            <span>Buku Fisik</span>
+          <button onclick="navSelect('store', 'physical')" id="side-physical"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-book w-4 text-center"></i><span>Buku Fisik</span>
           </button>
-          <button onclick="navSelect('library', 'ebooks')" id="mob-ebooks"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
-            <i class="fa-solid fa-bookmark text-base mb-0.5"></i>
-            <span>Koleksi</span>
+
+          <div class="my-3 border-t border-slate-100"></div>
+
+          <button onclick="navSelect('library', 'ebooks')" id="side-ebooks"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-bookmark w-4 text-center"></i><span>Koleksi Saya</span>
           </button>
-          <button onclick="navSelect('library', 'orders')" id="mob-orders"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl text-[11px] font-medium text-slate-500 transition">
-            <i class="fa-solid fa-truck-fast text-base mb-0.5"></i>
-            <span>Pesanan</span>
+          <button onclick="navSelect('library', 'orders')" id="side-orders"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition">
+            <i class="fa-solid fa-truck-fast w-4 text-center"></i><span>Pesanan Fisik</span>
           </button>
         </nav>
 
@@ -131,6 +128,7 @@
         </div>
       </aside>
 
+      
       <!-- 2. CENTER MAIN CONTENT -->
       <main class="flex-1 min-w-0 p-4 sm:p-6 bg-slate-50/40">
 
@@ -305,7 +303,7 @@
           </button>
         </nav>
 
-  <!-- MODAL DETAIL BUKU -->
+<!-- MODAL DETAIL BUKU -->
   <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -323,12 +321,18 @@
             <p id="detail-author" class="text-sm text-slate-500 mb-4"></p>
             <p id="detail-desc" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-6"></p>
           </div>
-         <div class="flex items-center gap-2">
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+            <div>
+              <span class="text-[11px] text-slate-400 block">Harga</span>
+              <span id="detail-price" class="text-lg font-extrabold text-slate-900">Rp 0</span>
+            </div>
+            <div class="flex items-center gap-2">
               <button id="detail-cart-btn" class="hidden px-4 py-2.5 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition">
                 <i class="fa-solid fa-cart-plus mr-1.5"></i>Keranjang
               </button>
               <button id="detail-action-btn" class="px-5 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition"></button>
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -750,6 +754,7 @@
       await Promise.all([loadBooks(), loadUserLibrary(), loadUserPhysicalOrders()]);
       document.getElementById('loading-state').classList.add('hidden');
       renderAuthorsSidebar();
+      updateCartBadge();
       renderView();
       renderQuickLibrary();
     }
@@ -890,6 +895,7 @@
       updateFilterPills();
       updateSidebarActive('store', type);
       renderView();
+      updateActiveNav('store', type);
     }
 
     function updateFilterPills() {
@@ -906,6 +912,7 @@
       updateLibrarySubtabUI();
       updateSidebarActive('library', subtab);
       renderView();
+      updateActiveNav('library', subtab);
     }
 
     function updateLibrarySubtabUI() {
@@ -1385,9 +1392,13 @@
         fullAddress = document.getElementById('co-address').value.trim();
       }
 
-      const payload = {
-        bookId: activeCheckoutBook.id,
-        quantity: parseInt(document.getElementById('co-qty').value, 10) || 1,
+   const payload = {
+        ...(isCartCheckoutMode
+          ? { items: cart }
+          : {
+              bookId: activeCheckoutBook.id,
+              quantity: parseInt(document.getElementById('co-qty').value, 10) || 1
+            }),
         paymentMethod,
         shippingMethod,
         shippingCost,
@@ -1395,6 +1406,13 @@
         shippingPhone: document.getElementById('co-phone').value.trim(),
         shippingAddress: fullAddress
       };
+
+      if (isCartCheckoutMode) {
+        cart = [];
+        saveCart();
+        isCartCheckoutMode = false;
+        document.getElementById('co-qty').disabled = false;
+      }
 
       closeCheckoutModal();
       await triggerMidtransPayment(payload, true);
