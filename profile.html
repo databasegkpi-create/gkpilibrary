@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Saya — GKPI Book Store</title>
+  <link rel="icon" type="image/png" href="/Logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen antialiased pb-12">
+
+  <!-- TOP BAR RINGKAS -->
+  <header class="h-14 px-4 sm:px-6 bg-white/95 backdrop-blur border-b border-slate-100 sticky top-0 z-30 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 text-slate-800 hover:text-rose-600 transition">
+      <i class="fa-solid fa-arrow-left text-sm"></i>
+      <img src="/Logo.png" alt="Logo GKPI" class="w-7 h-7 object-contain">
+      <span class="font-extrabold text-sm tracking-tight">Kembali ke Toko</span>
+    </a>
+    <button onclick="logout()" class="px-3.5 py-1.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition">
+      <i class="fa-solid fa-right-from-bracket mr-1"></i>Keluar
+    </button>
+  </header>
+
+  <!-- KONTENER PROFIL GAYA FACEBOOK -->
+  <main class="max-w-4xl mx-auto sm:px-4 sm:pt-5">
+
+    <!-- KARTU HEADER PROFIL (COVER + AVATAR + TABS) -->
+    <div class="bg-white sm:rounded-3xl shadow-xs border-b sm:border border-slate-200/80 overflow-hidden">
+
+      <!-- Cover Banner Pastel -->
+      <div class="hero-soft-banner h-36 sm:h-48 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-sky-200/40 blur-2xl"></div>
+        <div class="absolute -bottom-10 left-20 w-40 h-40 rounded-full bg-amber-200/40 blur-2xl"></div>
+        <div class="absolute bottom-3 right-4 hidden sm:flex items-center gap-2 bg-white/75 backdrop-blur-xs px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-700 border border-white">
+          <img src="/Logo.png" alt="" class="w-4 h-4 object-contain">
+          Anggota GKPI Book Store
+        </div>
+      </div>
+
+      <!-- Info Avatar & Nama (Menumpuk di atas Cover) -->
+      <div class="px-5 sm:px-8 pb-5">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 relative z-10">
+          <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+            <!-- Foto Profil -->
+            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white shadow-md bg-white overflow-hidden shrink-0">
+              <img id="prof-avatar-img" src="" alt="Foto Profil" class="hidden w-full h-full object-cover">
+              <div id="prof-avatar-initial" class="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-3xl sm:text-4xl font-extrabold flex items-center justify-center">U</div>
+            </div>
+
+            <!-- Nama & Email -->
+            <div class="pb-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 id="prof-display-name" class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">Memuat...</h1>
+                <span id="prof-provider-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Akun</span>
+              </div>
+              <p id="prof-display-email" class="text-xs sm:text-sm text-slate-500 mt-0.5">-</p>
+              <div class="flex items-center gap-4 mt-2 text-xs font-semibold text-slate-600">
+                <span><b id="stat-ebooks" class="text-slate-900">0</b> E-Book</span>
+                <span>&bull;</span>
+                <span><b id="stat-orders" class="text-slate-900">0</b> Pesanan Fisik</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Cepat Edit Profil -->
+          <button onclick="switchProfileTab('settings')" class="self-start sm:self-end px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition">
+            <i class="fa-solid fa-pen mr-1.5"></i>Edit Profil
+          </button>
+        </div>
+
+        <!-- TAB NAVIGASI ALA FACEBOOK -->
+        <div class="mt-6 pt-1 border-t border-slate-100 flex items-center gap-1 sm:gap-2 overflow-x-auto">
+          <button onclick="switchProfileTab('ebooks')" id="tab-ebooks"
+            class="px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-600 border-b-2 border-rose-600 whitespace-nowrap transition">
+            <i class="fa-solid fa-bookmark mr-1.5"></i>Koleksi E-Book
+          </button>
+          <button onclick="switchProfileTab('orders')" id="tab-orders"
+            class="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent whitespace-nowrap transition">
+            <i class="fa-solid fa-truck-fast mr-1.5"></i>Pesanan Fisik
+          </button>
+          <button onclick="switchProfileTab('settings')" id="tab-settings"
+            class="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent whitespace-nowrap transition">
+            <i class="fa-solid fa-user-gear mr-1.5"></i>Info &amp; Pengaturan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ISI KONTEN TAB -->
+    <div class="mt-5 px-4 sm:px-0">
+
+      <!-- TAB 1: KOLEKSI E-BOOK -->
+      <section id="panel-ebooks" class="space-y-4">
+        <div id="ebooks-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+        <div id="ebooks-empty" class="hidden bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center">
+          <i class="fa-solid fa-book-open text-2xl text-slate-300 mb-2"></i>
+          <p class="text-sm font-bold text-slate-700">Belum ada E-Book dimiliki</p>
+          <p class="text-xs text-slate-500 mt-1 mb-4">E-book yang Anda beli akan langsung tersimpan permanen di sini.</p>
+          <a href="/" class="inline-block px-5 py-2 rounded-full bg-slate-900 text-white text-xs font-bold">Jelajahi Katalog</a>
+        </div>
+      </section>
+
+      <!-- TAB 2: PESANAN FISIK -->
+      <section id="panel-orders" class="hidden space-y-3">
+        <div id="orders-list" class="space-y-3"></div>
+        <div id="orders-empty" class="hidden bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center">
+          <i class="fa-solid fa-box-open text-2xl text-slate-300 mb-2"></i>
+          <p class="text-sm font-bold text-slate-700">Belum ada pesanan buku fisik</p>
+          <p class="text-xs text-slate-500 mt-1">Riwayat pembelian dan nomor resi pengiriman akan tampil di sini.</p>
+        </div>
+      </section>
+
+      <!-- TAB 3: INFO & PENGATURAN PROFIL -->
+      <section id="panel-settings" class="hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 max-w-2xl">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Informasi Pribadi</h2>
+          <p class="text-xs text-slate-500 mb-5">Data ini akan otomatis terisi saat Anda melakukan checkout buku fisik.</p>
+
+          <form onsubmit="saveProfile(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+              <input type="text" id="input-name" placeholder="Nama lengkap Anda"
+                class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Email Akun</label>
+              <input type="email" id="input-email" disabled
+                class="w-full px-3.5 py-2.5 text-sm bg-slate-50 text-slate-500 border border-slate-200 rounded-xl cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP / WhatsApp</label>
+              <input type="tel" id="input-phone" placeholder="0812xxxxxxxx"
+                class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Pengiriman Utama</label>
+              <textarea id="input-address" rows="3" placeholder="Jalan, No. Rumah, Kecamatan, Kota..."
+                class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20"></textarea>
+            </div>
+            <button type="submit" id="btn-save-profile"
+              class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full transition">
+              <i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Perubahan
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL READER E-BOOK -->
+  <div id="reader-modal" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col">
+    <div class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between text-white shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <button onclick="closeReader()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Tutup
+        </button>
+        <h3 id="reader-title" class="text-sm font-bold truncate">Memuat E-Book...</h3>
+      </div>
+      <span class="text-xs text-slate-400 hidden sm:inline">
+        <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>Mode Baca Terproteksi
+      </span>
+    </div>
+    <div class="relative flex-1 w-full bg-slate-900 overflow-hidden">
+      <iframe id="reader-iframe" src="" class="w-full h-full border-0" allow="autoplay"></iframe>
+      <div class="absolute top-0 right-0 w-24 h-16 bg-transparent z-20"></div>
+      <div class="pointer-events-none select-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden opacity-15">
+        <span id="reader-watermark-text" class="text-white text-xl sm:text-3xl font-extrabold -rotate-30 whitespace-nowrap tracking-widest"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hhbghudcjnqzohksebox.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_b8BjVmh_WoFus_3QDpksNg_2ipxO4Gf';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentSession = null;
+
+    function formatRupiah(n) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '-';
+      return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    async function initProfile() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.replace('/');
+        return;
+      }
+      currentSession = session;
+      renderHeader(session.user);
+      await Promise.all([loadOwnedEbooks(), loadPhysicalOrders()]);
+    }
+
+    function renderHeader(user) {
+      const meta = user.user_metadata || {};
+      const photo = meta.avatar_url || meta.picture || '';
+      const isFb = user.app_metadata?.provider === 'facebook';
+
+      const imgEl = document.getElementById('prof-avatar-img');
+      const initEl = document.getElementById('prof-avatar-initial');
+      if (photo) {
+        imgEl.src = photo;
+        imgEl.classList.remove('hidden');
+        initEl.classList.add('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+        initEl.classList.remove('hidden');
+        initEl.textContent = (meta.full_name || user.email || 'U')[0].toUpperCase();
+      }
+
+      document.getElementById('prof-display-name').textContent = meta.full_name || user.email.split('@')[0];
+      document.getElementById('prof-display-email').textContent = user.email;
+      document.getElementById('prof-provider-badge').innerHTML = isFb
+        ? '<i class="fa-brands fa-facebook mr-1"></i>Facebook'
+        : '<i class="fa-solid fa-envelope mr-1"></i>Email';
+
+      document.getElementById('input-name').value = meta.full_name || '';
+      document.getElementById('input-email').value = user.email || '';
+      document.getElementById('input-phone').value = meta.phone || '';
+      document.getElementById('input-address').value = meta.address || '';
+    }
+
+    async function loadOwnedEbooks() {
+      const { data } = await supabaseClient
+        .from('user_library')
+        .select('book_id, books(id, title, author, cover_url, product_type)')
+        .eq('user_id', currentSession.user.id);
+
+      const ebooks = (data || []).map((r) => r.books).filter((b) => b && (b.product_type || 'digital') === 'digital');
+      document.getElementById('stat-ebooks').textContent = ebooks.length;
+
+      const grid = document.getElementById('ebooks-grid');
+      const empty = document.getElementById('ebooks-empty');
+
+      if (ebooks.length === 0) {
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.classList.remove('hidden');
+      grid.innerHTML = ebooks.map((b) => `
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col shadow-xs hover:shadow-md transition">
+          <img src="${b.cover_url || 'https://placehold.co/300x400?text=Buku'}" class="aspect-[3/4] w-full object-cover rounded-xl bg-slate-100 mb-2.5">
+          <h3 class="text-xs font-bold text-slate-900 line-clamp-1">${b.title}</h3>
+          <p class="text-[11px] text-slate-500 truncate mb-2.5">${b.author || 'Tim Penulis'}</p>
+          <button onclick="openReader('${b.id}')" class="mt-auto w-full py-1.5 text-xs font-bold bg-emerald-600 text-white rounded-full">
+            <i class="fa-solid fa-book-open-reader mr-1"></i>Baca
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function loadPhysicalOrders() {
+      const { data } = await supabaseClient
+        .from('transactions')
+        .select('*, books(title, cover_url)')
+        .eq('user_id', currentSession.user.id)
+        .eq('product_type', 'physical')
+        .order('created_at', { ascending: false });
+
+      const orders = data || [];
+      document.getElementById('stat-orders').textContent = orders.length;
+
+      const list = document.getElementById('orders-list');
+      const empty = document.getElementById('orders-empty');
+
+      if (orders.length === 0) {
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      list.classList.remove('hidden');
+      list.innerHTML = orders.map((tx) => {
+        const isPaid = tx.status === 'PAID';
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col sm:flex-row justify-between gap-3">
+            <div class="flex gap-3">
+              <img src="${tx.books?.cover_url || 'https://placehold.co/80x100?text=Buku'}" class="w-12 h-16 object-cover rounded-lg border border-slate-200 shrink-0">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-mono text-[11px] font-bold text-slate-500">${tx.order_id}</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${isPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${isPaid ? 'LUNAS' : tx.status}</span>
+                </div>
+                <p class="text-sm font-bold text-slate-900">${tx.books?.title || 'Buku Fisik'} (${tx.quantity || 1}x)</p>
+                <p class="text-xs text-slate-500">${formatDate(tx.created_at)} &bull; ${tx.shipping_method || '-'}</p>
+              </div>
+            </div>
+            <div class="sm:text-right">
+              <p class="text-sm font-extrabold text-slate-900">${formatRupiah(tx.amount)}</p>
+              ${tx.tracking_number ? `<p class="text-xs font-mono text-blue-700 mt-1">Resi: <b>${tx.tracking_number}</b></p>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function switchProfileTab(tab) {
+      ['ebooks', 'orders', 'settings'].forEach((t) => {
+        const btn = document.getElementById(`tab-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        const active = t === tab;
+        panel.classList.toggle('hidden', !active);
+        btn.className = active
+          ? 'px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-600 border-b-2 border-rose-600 whitespace-nowrap transition'
+          : 'px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 border-b-2 border-transparent whitespace-nowrap transition';
+      });
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-profile');
+      btn.disabled = true;
+
+      try {
+        const { data, error } = await supabaseClient.auth.updateUser({
+          data: {
+            full_name: document.getElementById('input-name').value.trim(),
+            phone: document.getElementById('input-phone').value.trim(),
+            address: document.getElementById('input-address').value.trim()
+          }
+        });
+        if (error) throw error;
+        if (data?.user) renderHeader(data.user);
+        Swal.fire({ icon: 'success', title: 'Profil Diperbarui', timer: 1200, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Gagal', err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function openReader(bookId) {
+      Swal.fire({ title: 'Membuka E-Book...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        const res = await fetch(`/api/read-book?bookId=${bookId}`, {
+          headers: { Authorization: `Bearer ${currentSession.access_token}` }
+        });
+        const data = await res.json();
+        Swal.close();
+        if (!res.ok) return Swal.fire('Gagal', data.error || 'Tidak dapat membuka buku.', 'error');
+
+        document.getElementById('reader-title').textContent = data.title || 'E-Book';
+        document.getElementById('reader-watermark-text').textContent = `${data.userEmail} • GKPI DIGITAL`;
+        document.getElementById('reader-iframe').src = data.streamUrl;
+        document.getElementById('reader-modal').classList.remove('hidden');
+      } catch (err) {
+        Swal.close();
+        Swal.fire('Error', err.message, 'error');
+      }
+    }
+
+    function closeReader() {
+      document.getElementById('reader-modal').classList.add('hidden');
+      document.getElementById('reader-iframe').src = '';
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.replace('/');
+    }
+
+    initProfile();
+  </script>
+</body>
+</html>
